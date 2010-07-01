@@ -33,7 +33,7 @@ namespace FacebookSampleApp
 
             Facebook.FacebookAPI api = new Facebook.FacebookAPI(token);
 
-            JSONObject me = api.Get("/me");
+            JSONObject me = api.Get("/4");
             Console.WriteLine(me.Dictionary["name"].String);
         }
     }
