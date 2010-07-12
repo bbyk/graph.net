@@ -37,40 +37,40 @@ will depend on what type of application is using it. A desktop application
 might show a popup browser window that loads the Facebook site, for example.
 You can read more about obtaining an access token here:
 
- http://developers.facebook.com/docs/authentication/
+   http://developers.facebook.com/docs/authentication/
 
 Calling the Graph API
 =====================
 
 First you instantiate an API object (passing in the token):
 
-  Facebook.FacebookAPI api = new Facebook.FacebookAPI(token);
+    Facebook.FacebookAPI api = new Facebook.FacebookAPI(token);
 
 If you pass in null then you will only be able to access public data.
 Then you make calls like:
 
-  JSONObject result = api.Get("/userid");
+    JSONObject result = api.Get("/userid");
 
 The JSONObject class provides a wrapper around JSON that allows for automatic
 type conversion. In particular, it can treat JSON as a Dictionary, Array,
 String, or Integer. So to get the name of the userid as a string you would do:
 
-  string name = result.Dictionary["name"].String;
+    string name = result.Dictionary["name"].String;
 
 The SDK also supports POST and DELETE requests, for writing data. For example
 to delete a comment once you have gotten its id you could do:
 
-  api.Delete("/comment_id");
+    api.Delete("/comment_id");
 
 To write a post on a user's wall you could do:
 
-  Dictionary<string, string> postArgs = new Dictionary<string, string>();
-  postArgs["message"] = "Hello, world!";
-  api.Post("/userid/feed", postArgs);
+    Dictionary<string, string> postArgs = new Dictionary<string, string>();
+    postArgs["message"] = "Hello, world!";
+    api.Post("/userid/feed", postArgs);
 
 More information on the API itself can be found at:
 
-  http://developers.facebook.com/docs/api
+    http://developers.facebook.com/docs/api
 
 Errors
 ======
