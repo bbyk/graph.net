@@ -4,22 +4,21 @@ Facebook C# SDK
 This SDK provides a light wrapper around the Facebook Graph API.
 
 Getting Started
-===============
+---------------
 
 The easiest way to get started is to have Visual Studio. You can get a free copy
 of Microsoft Visual C# 2010 Express Edition at:
-
- http://www.microsoft.com/express/Downloads/#2010-Visual-CS
+http://www.microsoft.com/express/Downloads/#2010-Visual-CS
 
 The instructions that follow will assume that are you using this version. The
 steps are very similar for other versions.
 
-Once you have installed it and downloaded the source, you will need to build 
-the library. Open facebook/FacebookAPI.csproj. It may ask you to create a 
-solution, in which case you can just use the default name. Right click on 
-FacebookAPI in the Solution Explorer and choose 'Build'. This shouldn't 
+Once you have installed it and downloaded the source, you will need to build
+the library. Open facebook/FacebookAPI.csproj. It may ask you to create a
+solution, in which case you can just use the default name. Right click on
+FacebookAPI in the Solution Explorer and choose 'Build'. This shouldn't
 take very long. The SDK is ready to use. You can either build on top of
-this project, or use the DLL directly in another project. 
+this project, or use the DLL directly in another project.
 
 There is a sample app included, which shows an example of the latter. Open
 examples/FacebookSampleApp.csproj. Again, it may ask you to create a solution.
@@ -29,18 +28,17 @@ the project, and run it. You should see the string 'Mark Zuckerberg' printed
 out, if everything worked.
 
 Access Token
-============
+------------
 
 Most data accessible via the Graph API required an access token. This SDK
 does not include a method of getting a token from a user, as the best method
 will depend on what type of application is using it. A desktop application
 might show a popup browser window that loads the Facebook site, for example.
 You can read more about obtaining an access token here:
-
-   http://developers.facebook.com/docs/authentication/
+http://developers.facebook.com/docs/authentication/
 
 Calling the Graph API
-=====================
+---------------------
 
 First you instantiate an API object (passing in the token):
 
@@ -69,10 +67,9 @@ To write a post on a user's wall you could do:
     api.Post("/userid/feed", postArgs);
 
 More information on the API itself can be found at:
-
-    http://developers.facebook.com/docs/api
+http://developers.facebook.com/docs/api
 
 Errors
-======
+------
 
 Any errors in making Graph API calls cause a FacebookAPIException to be thrown.
