@@ -24,6 +24,14 @@ using System.Web.Script.Serialization;
 
 namespace Facebook
 {
+
+    enum HttpVerb
+    {
+        GET,
+        POST,
+        DELETE
+    }
+
     /// <summary>
     /// Wrapper around the Facebook Graph API. 
     /// </summary>
@@ -58,7 +66,7 @@ namespace Facebook
         /// e.g. /username</param>
         public JSONObject Get(string relativePath)
         {
-            return Call(relativePath, "GET", null);
+            return Call(relativePath, HttpVerb.GET, null);
         }
 
         /// <summary>
@@ -71,7 +79,7 @@ namespace Facebook
         public JSONObject Get(string relativePath, 
                               Dictionary<string, string> args)
         {
-            return Call(relativePath, "GET", args);
+            return Call(relativePath, HttpVerb.GET, args);
         }
 
         /// <summary>
@@ -81,7 +89,7 @@ namespace Facebook
         /// e.g. /username</param>
         public JSONObject Delete(string relativePath)
         {
-            return Call(relativePath, "DELETE", null);
+            return Call(relativePath, HttpVerb.DELETE, null);
         }
 
         /// <summary>
@@ -95,7 +103,7 @@ namespace Facebook
         public JSONObject Post(string relativePath,
                                Dictionary<string, string> args)
         {
-            return Call(relativePath, "POST", args);
+            return Call(relativePath, HttpVerb.POST, args);
         }
 
         /// <summary>
@@ -108,7 +116,7 @@ namespace Facebook
         /// <param name="args">A dictionary of key/value pairs that
         /// will get passed as query arguments.</param>
         private JSONObject Call(string relativePath, 
-                                string httpVerb,
+                                HttpVerb httpVerb,
                                 Dictionary<string, string> args)
         {
             Uri baseURL = new Uri("https://graph.facebook.com");
@@ -143,19 +151,19 @@ namespace Facebook
         /// <param name="verb">The HTTP verb to use</param>
         /// <param name="args">Dictionary of key/value pairs that represents
         /// the key/value pairs for the request</param>
-        private string MakeRequest(Uri url, string verb,
+        private string MakeRequest(Uri url, HttpVerb httpVerb,
                                    Dictionary<string, string> args)
         { 
-            if (args != null && args.Keys.Count > 0 && verb == "GET")
+            if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.GET)
             {
                 url = new Uri(url.ToString() + EncodeDictionary(args, true));
             }
 
             HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
 
-            request.Method = verb;
+            request.Method = httpVerb.ToString();
 
-            if (verb == "POST")
+            if (httpVerb == HttpVerb.POST)
             {
                 string postData = EncodeDictionary(args, false);
 
