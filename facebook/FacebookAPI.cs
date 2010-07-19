@@ -213,13 +213,7 @@ namespace Facebook
             {
                 sb.Append(HttpUtility.UrlEncode(kvp.Key));
                 sb.Append("=");
-                // We don't encode the access token since it is allowed
-                // to contain special characters.
-                string val = kvp.Value;
-                if (kvp.Key != "access_token") {
-                  val = HttpUtility.UrlEncode(val);
-                }
-                sb.Append(val);
+                sb.Append(HttpUtility.UrlEncode(kvp.Value));
                 sb.Append("&");
             }
             sb.Remove(sb.Length - 1, 1); // Remove trailing &
