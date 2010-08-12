@@ -1,10 +1,11 @@
+#region Facebook's boilerplate notice
 /*
  * Copyright 2010 Facebook, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
  * a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -13,10 +14,32 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
+#endregion
+
+// THIS FILE IS MODIFIED SINCE FORKING FROM http://github.com/facebook/csharp-sdk/commit/52cf2493349494b783e321e0ea22335481b1c058 //
+
+#region Boris Byk's boilerplate notice
+/*
+ * Copyright 2010 Boris Byk.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+#endregion
 
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Globalization;
 using System.Web.Script.Serialization;
 
 namespace Facebook
@@ -28,6 +51,9 @@ namespace Facebook
     /// </summary>
     public class JSONObject
     {
+        long? _int;
+        bool? _bool;
+
         /// <summary>
         /// Creates a JSONObject by parsing a string.
         /// This is the only correct way to create a JSONObject.
@@ -35,10 +61,9 @@ namespace Facebook
         public static JSONObject CreateFromString(string s)
         {
             object o;
-            JavaScriptSerializer js = new JavaScriptSerializer();
             try
             {
-                o = js.DeserializeObject(s);
+                o = new JavaScriptSerializer().DeserializeObject(s);
             }
             catch (ArgumentException)
             {
@@ -88,8 +113,14 @@ namespace Facebook
         {
             get
             {
-                Int64 tmp;
-                return Int64.TryParse(_stringData, out tmp);
+                long tmp;
+                if (Int64.TryParse(_stringData, out tmp))
+                {
+                    _int = tmp;
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -101,7 +132,13 @@ namespace Facebook
             get
             {
                 bool tmp;
-                return bool.TryParse(_stringData, out tmp);
+                if (bool.TryParse(ExtractQuoted(), out tmp))
+                {
+                    _bool = tmp;
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -112,7 +149,7 @@ namespace Facebook
         {
             get
             {
-                return _dictData;   
+                return _dictData;
             }
         }
 
@@ -145,7 +182,7 @@ namespace Facebook
         {
             get
             {
-                return Convert.ToInt64(_stringData);
+                return _int.HasValue ? _int.Value : Convert.ToInt64(_stringData, CultureInfo.InvariantCulture);
             }
         }
 
@@ -156,15 +193,14 @@ namespace Facebook
         {
             get
             {
-                return Convert.ToBoolean(_stringData);
+                return _bool.HasValue ? _bool.Value : Convert.ToBoolean(ExtractQuoted(), CultureInfo.InvariantCulture);
             }
         }
-
 
         /// <summary>
         /// Prints the JSONObject as a formatted string, suitable for viewing.
         /// </summary>
-        public string ToDisplayableString()
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
             RecursiveObjectToString(this, sb, 0);
@@ -177,8 +213,7 @@ namespace Facebook
         private JSONObject[] _arrayData;
         private Dictionary<string, JSONObject> _dictData;
 
-        private JSONObject() 
-        { }
+        private JSONObject() { }
 
         /// <summary>
         /// Recursively constructs this JSONObject 
@@ -186,20 +221,20 @@ namespace Facebook
         private static JSONObject Create(object o)
         {
             JSONObject obj = new JSONObject();
-            if (o is object[])
+
+            object[] objArray;
+            Dictionary<string, object> dict;
+            if ((objArray = o as object[]) != null)
             {
-                object[] objArray = o as object[];
                 obj._arrayData = new JSONObject[objArray.Length];
                 for (int i = 0; i < obj._arrayData.Length; ++i)
                 {
                     obj._arrayData[i] = Create(objArray[i]);
                 }
             }
-            else if (o is Dictionary<string, object>)
+            else if ((dict = o as Dictionary<string, object>) != null)
             {
                 obj._dictData = new Dictionary<string, JSONObject>();
-                Dictionary<string, object> dict = 
-                    o as Dictionary<string, object>;
                 foreach (string key in dict.Keys)
                 {
                     obj._dictData[key] = Create(dict[key]);
@@ -213,7 +248,7 @@ namespace Facebook
             return obj;
         }
 
-        private static void RecursiveObjectToString(JSONObject obj, 
+        private static void RecursiveObjectToString(JSONObject obj,
             StringBuilder sb, int level)
         {
             if (obj.IsDictionary)
@@ -234,7 +269,7 @@ namespace Facebook
                 sb.Append(obj.String);
             }
         }
-        private static void RecursiveDictionaryToString(JSONObject obj, 
+        private static void RecursiveDictionaryToString(JSONObject obj,
             StringBuilder sb, int level)
         {
             foreach (KeyValuePair<string, JSONObject> kvp in obj.Dictionary)
@@ -246,6 +281,16 @@ namespace Facebook
                 sb.AppendLine();
             }
         }
+
+        string ExtractQuoted()
+        {
+            return _stringData != null
+                && ((_stringData[0] == '\'' && _stringData[_stringData.Length - 1] == '\'')
+                || (_stringData[0] == '"' && _stringData[_stringData.Length - 1] == '"')) ?
+                _stringData.Substring(1, Math.Max(0, _stringData.Length - 2)) :
+                _stringData;
+        }
+
 
         #endregion
 

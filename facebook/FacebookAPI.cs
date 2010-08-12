@@ -1,10 +1,11 @@
+#region Facebook's boilerplate notice
 /*
  * Copyright 2010 Facebook, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
  * a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -13,6 +14,27 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
+#endregion
+
+// THIS FILE IS MODIFIED SINCE FORKING FROM http://github.com/facebook/csharp-sdk/commit/52cf2493349494b783e321e0ea22335481b1c058 //
+
+#region Boris Byk's boilerplate notice
+/*
+ * Copyright 2010 Boris Byk.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +42,7 @@ using System.Text;
 using System.Net;
 using System.IO;
 using System.Web;
-using System.Web.Script.Serialization;
+using System.Globalization;
 
 namespace Facebook
 {
@@ -35,8 +57,10 @@ namespace Facebook
     /// <summary>
     /// Wrapper around the Facebook Graph API. 
     /// </summary>
-    public class FacebookAPI
-    {  
+    public partial class FacebookAPI
+    {
+        public CultureInfo Culture { get; set; }
+
         /// <summary>
         /// The access token used to authenticate API calls.
         /// </summary>
@@ -151,15 +175,15 @@ namespace Facebook
         /// <param name="verb">The HTTP verb to use</param>
         /// <param name="args">Dictionary of key/value pairs that represents
         /// the key/value pairs for the request</param>
-        private string MakeRequest(Uri url, HttpVerb httpVerb,
-                                   Dictionary<string, string> args)
+        private string MakeRequest(Uri url, HttpVerb httpVerb, Dictionary<string, string> args)
         { 
             if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.GET)
             {
-                url = new Uri(url.ToString() + EncodeDictionary(args, true));
+                url = new Uri(url.AbsoluteUri + EncodeDictionary(args, true));
             }
 
-            HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.Headers.Add(HttpRequestHeader.AcceptLanguage, Culture == null ? "en" : Culture.IetfLanguageTag.ToLowerInvariant());
 
             request.Method = httpVerb.ToString();
 
@@ -167,31 +191,43 @@ namespace Facebook
             {
                 string postData = EncodeDictionary(args, false);
 
-                ASCIIEncoding encoding = new ASCIIEncoding();
-                byte[] postDataBytes = encoding.GetBytes(postData);
+                byte[] postDataBytes = Encoding.ASCII.GetBytes(postData);
 
                 request.ContentType = "application/x-www-form-urlencoded";
                 request.ContentLength = postDataBytes.Length;
 
-                Stream requestStream = request.GetRequestStream();
-                requestStream.Write(postDataBytes, 0, postDataBytes.Length);
-                requestStream.Close();
-            }
-
-            try
-            {
-                using (HttpWebResponse response 
-                        = request.GetResponse() as HttpWebResponse)
+                try
                 {
-                    StreamReader reader 
-                        = new StreamReader(response.GetResponseStream());
-
-                    return reader.ReadToEnd();
+                    using (Stream requestStream = request.GetRequestStream())
+                    {
+                        requestStream.Write(postDataBytes, 0, postDataBytes.Length);
+                    }
+                }
+                catch (WebException ex)
+                {
+                    throw NonProtocolError(ex);
                 }
             }
-            catch (WebException e)
+
+            HttpWebResponse response;
+            try
             {
-                throw new FacebookAPIException("Server Error", e.Message);
+                using (response = (HttpWebResponse)request.GetResponse())
+                {
+                    return new StreamReader(response.GetResponseStream()).ReadToEnd();
+                }
+            }
+            catch (WebException ex)
+            {
+                if (ex.Status == WebExceptionStatus.ProtocolError)
+                {
+                    using (response = (HttpWebResponse)ex.Response)
+                    {
+                        return new StreamReader(response.GetResponseStream()).ReadToEnd();
+                    }
+                }
+
+                throw NonProtocolError(ex);
             }
         }
 
@@ -207,17 +243,23 @@ namespace Facebook
             StringBuilder sb = new StringBuilder();
             if (questionMark)
             {
-                sb.Append("?");
+                sb.Append('?');
             }
+            bool first = true;
             foreach (KeyValuePair<string, string> kvp in dict)
             {
+                if (first) first = false;
+                else sb.Append('&');
                 sb.Append(HttpUtility.UrlEncode(kvp.Key));
-                sb.Append("=");
+                sb.Append('=');
                 sb.Append(HttpUtility.UrlEncode(kvp.Value));
-                sb.Append("&");
             }
-            sb.Remove(sb.Length - 1, 1); // Remove trailing &
             return sb.ToString();
+        }
+
+        static FacebookAPIException NonProtocolError(WebException ex)
+        {
+            return new FacebookAPIException("Server Error", "For more information see inner exception", ex);
         }
     }
 }
