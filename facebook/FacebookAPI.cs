@@ -43,6 +43,7 @@ using System.Net;
 using System.IO;
 using System.Web;
 using System.Globalization;
+using System.Security;
 
 namespace Facebook
 {
@@ -153,17 +154,16 @@ namespace Facebook
             {
                 args["access_token"] = AccessToken;
             }
+
+            string tmp;
             JSONObject obj = JSONObject.CreateFromString(MakeRequest(url,
                                                                      httpVerb,
-                                                                     args));
+                                                                     null,
+                                                                     args,
+                                                                     out tmp));
             if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
             {
-                throw new FacebookAPIException(obj.Dictionary["error"]
-                                                  .Dictionary["type"]
-                                                  .String,
-                                               obj.Dictionary["error"]
-                                                  .Dictionary["message"]
-                                                  .String);
+                throw ProtocolError(obj);
             }
             return obj;
         }
@@ -175,7 +175,9 @@ namespace Facebook
         /// <param name="verb">The HTTP verb to use</param>
         /// <param name="args">Dictionary of key/value pairs that represents
         /// the key/value pairs for the request</param>
-        private string MakeRequest(Uri url, HttpVerb httpVerb, Dictionary<string, string> args)
+        /// <exception cref="FacebookAPIException"></exception>
+        /// <exception cref="SecurityException"></exception>
+        internal static string MakeRequest(Uri url, HttpVerb httpVerb, CultureInfo ci, Dictionary<string, string> args, out string contentType)
         { 
             if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.GET)
             {
@@ -183,8 +185,7 @@ namespace Facebook
             }
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Headers.Add(HttpRequestHeader.AcceptLanguage, Culture == null ? "en" : Culture.IetfLanguageTag.ToLowerInvariant());
-
+            request.Headers.Add(HttpRequestHeader.AcceptLanguage, ci == null ? "en" : ci.IetfLanguageTag.ToLowerInvariant());
             request.Method = httpVerb.ToString();
 
             if (httpVerb == HttpVerb.POST)
@@ -203,7 +204,7 @@ namespace Facebook
                         requestStream.Write(postDataBytes, 0, postDataBytes.Length);
                     }
                 }
-                catch (WebException ex)
+                catch (Exception ex)
                 {
                     throw NonProtocolError(ex);
                 }
@@ -214,6 +215,7 @@ namespace Facebook
             {
                 using (response = (HttpWebResponse)request.GetResponse())
                 {
+                    contentType = ExtractContentType(response);
                     return new StreamReader(response.GetResponseStream()).ReadToEnd();
                 }
             }
@@ -221,12 +223,22 @@ namespace Facebook
             {
                 if (ex.Status == WebExceptionStatus.ProtocolError)
                 {
-                    using (response = (HttpWebResponse)ex.Response)
+                    response = response = (HttpWebResponse)ex.Response;
+                    contentType = ExtractContentType(response);
+
+                    if (contentType == "text/javascript")
                     {
-                        return new StreamReader(response.GetResponseStream()).ReadToEnd();
+                        using (response)
+                        {
+                            return new StreamReader(response.GetResponseStream()).ReadToEnd();
+                        }
                     }
                 }
 
+                throw NonProtocolError(ex);
+            }
+            catch (Exception ex)
+            {
                 throw NonProtocolError(ex);
             }
         }
@@ -237,8 +249,7 @@ namespace Facebook
         /// <param name="dict">The dictionary to encode</param>
         /// <param name="questionMark">Whether or not to start it
         /// with a question mark (for GET requests)</param>
-        private string EncodeDictionary(Dictionary<string, string> dict,
-                                        bool questionMark)
+        static string EncodeDictionary(Dictionary<string, string> dict, bool questionMark)
         {
             StringBuilder sb = new StringBuilder();
             if (questionMark)
@@ -257,9 +268,39 @@ namespace Facebook
             return sb.ToString();
         }
 
-        static FacebookAPIException NonProtocolError(WebException ex)
+        static string ExtractContentType(HttpWebResponse response)
         {
-            return new FacebookAPIException("Server Error", "For more information see inner exception", ex);
+            string contentType = response.ContentType;
+            if (String.IsNullOrEmpty(contentType))
+            {
+                throw MissingContentTypeError();
+            }
+            return contentType.Split(';')[0];
+        }
+
+        internal static Exception ProtocolError(JSONObject obj)
+        {
+            return new FacebookAPIException(obj.Dictionary["error"]
+                                              .Dictionary["type"]
+                                              .String,
+                                           obj.Dictionary["error"]
+                                              .Dictionary["message"]
+                                              .String);
+        }
+
+        static Exception NonProtocolError(Exception ex)
+        {
+            return new FacebookAPIException("Server Error", "For more information see the inner exception", ex);
+        }
+
+        static Exception MissingContentTypeError()
+        {
+            return UnexpectedResponseError("Missing Content-Type header");
+        }
+
+        internal static Exception UnexpectedResponseError(string response)
+        {
+            return new FacebookAPIException("Unexpected Response", response);
         }
     }
 }
