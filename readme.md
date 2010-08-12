@@ -1,10 +1,12 @@
 Facebook C# SDK
 ===============
 
-This SDK provides a light wrapper around the Facebook Graph API.
+This SDK provides a light wrapper around the Facebook Graph API with both sync and async calls.
+
+Forked from http://github.com/facebook/csharp-sdk.
 
 NOTE: This is an **alpha** release. If you encounter any issues, please file
-them [here](http://github.com/facebook/csharp-sdk/issues).
+them [here](http://github.com/bbyk/graphasync/issues).
 
 
 Getting Started
