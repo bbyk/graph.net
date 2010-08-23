@@ -23,7 +23,7 @@ under the License.
     <ProjectGuid>{1F538275-4C0C-4983-8D92-BFF2AA0E5FC1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FacebookAPI</RootNamespace>
+    <RootNamespace>Facebook</RootNamespace>
     <AssemblyName>FacebookAPI</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -56,6 +56,9 @@ under the License.
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -64,10 +67,14 @@ under the License.
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auth.cs" />
+    <Compile Include="CanvasUtil.cs" />
     <Compile Include="FacebookAPI.cs" />
     <Compile Include="FacebookAPIException.cs" />
+    <Compile Include="AuthenticationModule.cs" />
+    <Compile Include="Identity.cs" />
     <Compile Include="JSONObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Types.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

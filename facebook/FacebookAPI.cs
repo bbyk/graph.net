@@ -37,6 +37,7 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
@@ -44,6 +45,9 @@ using System.IO;
 using System.Web;
 using System.Globalization;
 using System.Security;
+using System.Collections.Specialized;
+using System.Security.Cryptography;
+using System.Web.SessionState;
 
 namespace Facebook
 {
@@ -71,7 +75,8 @@ namespace Facebook
         /// Create a new instance of the API, with public access only.
         /// </summary>
         public FacebookAPI()
-            : this(null) { }
+        {
+        }
 
         /// <summary>
         /// Create a new instance of the API, using the given token to
@@ -81,6 +86,9 @@ namespace Facebook
         /// authentication</param>
         public FacebookAPI(string token)
         {
+            if (String.IsNullOrEmpty(token))
+                throw new ArgumentNullException("token");
+
             AccessToken = token;
         }
 
@@ -249,10 +257,10 @@ namespace Facebook
         /// <param name="dict">The dictionary to encode</param>
         /// <param name="questionMark">Whether or not to start it
         /// with a question mark (for GET requests)</param>
-        static string EncodeDictionary(Dictionary<string, string> dict, bool questionMark)
+        internal static string EncodeDictionary(Dictionary<string, string> dict, bool questionMark)
         {
             StringBuilder sb = new StringBuilder();
-            if (questionMark)
+            if (questionMark && dict.Count > 0)
             {
                 sb.Append('?');
             }

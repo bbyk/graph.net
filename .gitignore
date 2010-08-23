@@ -4,4 +4,9 @@ facebook/FacebookAPI.suo
 examples/obj/
 facebook/bin/
 facebook/obj/
+web/FacebookAPI.WebUI.csproj.user
+web/bin/web.dll
+web/bin/web.pdb
+web/obj/
+web/bin/
 
