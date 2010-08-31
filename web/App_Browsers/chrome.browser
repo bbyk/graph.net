@@ -1,0 +1,25 @@
+﻿<!--
+    You can find existing browser definitions at
+    <windir>\Microsoft.NET\Framework\<ver>\CONFIG\Browsers
+-->
+<browsers>
+  <browser id="GoogleChrome" parentID="Safari1Plus">
+    <identification>
+      <userAgent match="Chrome/(?'version'(?'major'\d+)\.(?'minor'\d+\.\d+).\d+)" />
+    </identification>
+    <capture>
+    </capture>
+    <capabilities>
+      <capability name="browser"        value="Chrome" />
+      <capability name="majorversion"   value="${major}" />
+      <capability name="minorversion"   value="${minor}" />
+      <capability name="version"        value="${version}" />
+    </capabilities>
+  </browser>
+
+  <!--<browser refID="GoogleChrome">
+    <capabilities>
+      <capability name="cookies" value="true" />
+    </capabilities>
+  </browser>-->
+</browsers>

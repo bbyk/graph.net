@@ -306,6 +306,11 @@ namespace Facebook
             return UnexpectedResponseError("Missing Content-Type header");
         }
 
+        internal static Exception NRE(string paramName)
+        {
+            return new ArgumentNullException(paramName);
+        }
+
         internal static Exception UnexpectedResponseError(string response)
         {
             return new FacebookAPIException("Unexpected Response", response);

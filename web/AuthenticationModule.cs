@@ -1,11 +1,80 @@
-﻿
+﻿using System;
+using System.Security.Principal;
+using Facebook;
+using System.Web;
+
 namespace FacebookAPI.WebUI
 {
-    public class AuthenticationModule : Facebook.AuthenticationModule
+    public class AuthenticationModule : IApplicationBindings, IHttpModule
     {
-        public override Facebook.CanvasUtil CreateCanvasUtil()
+        #region IHttpModule Members
+
+        public void Dispose()
         {
-            return new Facebook.CanvasUtil("119774131404605", "9f4233f1193a1affd3de35a305c06a0c");
         }
+
+        public void Init(HttpApplication app)
+        {
+            // a fix for IE. it wants us to declare P3P header (see http://msdn.microsoft.com/en-us/library/ms537343.aspx) when under iframe.
+            app.PreSendRequestHeaders += (s, e) => app.Response.AddHeader("P3P", "CP=\"CAO PSA OUR\"");
+            app.PostAcquireRequestState += (s, e) => OnEnter(app.Context);
+        }
+
+        #endregion
+
+        void OnEnter(HttpContext context)
+        {
+            if (context.Session == null)
+                return;
+
+            // the following browsers has 'Accept cookie from site I visit settings'. we need to make them store cookie.
+            HttpBrowserCapabilities br = context.Request.Browser;
+            bool forceLogin = br.IsBrowser("opera") || (br.IsBrowser("safari") && !br.IsBrowser("googlechrome"));
+
+            forceLogin = forceLogin && context.Session["after_login"] == null;
+
+            var util = new CanvasUtil(this);
+
+            if (util.Authenticate(context) && !forceLogin)
+            {
+                context.User = new GenericPrincipal(new Identity(util), null);
+                var step = context.Session["after_login"] as int?;
+
+                if (!step.HasValue || step.Value != 0) return;
+
+                context.Session["after_login"] = 1;
+                CanvasUtil.RedirectFromIFrame(context, util.ResolveCanvasPageUrl("~/"));
+            }
+            else
+            {
+                context.Session["after_login"] = 0;
+                CanvasUtil.RedirectFromIFrame(context, util.GetLoginUrl(context.Request.Url));
+                return;
+            }
+        }
+
+        #region IApplicationBindings Members
+
+        public string AppId
+        {
+            get { return "119774131404605"; }
+        }
+
+        public string AppSecret
+        {
+            get { return "9f4233f1193a1affd3de35a305c06a0c"; }
+        }
+
+        public Uri SiteUrl
+        {
+            get { return new Uri("http://localhost:24526/"); }
+        }
+
+        public Uri CanvasPage
+        {
+            get { return new Uri("http://apps.facebook.com/graphdotnet/"); }
+        }
+
+        #endregion
     }
 }

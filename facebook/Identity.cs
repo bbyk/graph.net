@@ -30,7 +30,7 @@ namespace Facebook
 
         public bool IsAuthenticated
         {
-            get { return true; }
+            get { return _util.IsAuthenticated; }
         }
 
         public string Name

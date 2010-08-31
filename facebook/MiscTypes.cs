@@ -21,4 +21,27 @@ namespace Facebook
 
         public bool IsExpired { get { return DateTime.UtcNow > Expires; } }
     }
+
+    public interface IApplicationBindings
+    {
+        /// <summary>
+        /// Application ID
+        /// </summary>
+        string AppId { get; }
+
+        /// <summary>
+        /// Application Secret
+        /// </summary>
+        string AppSecret { get; }
+
+        /// <summary>
+        /// E.g. http://localhost:24526/
+        /// </summary>
+        Uri SiteUrl { get; }
+
+        /// <summary>
+        /// E.g. http://apps.facebook.com/graphdotnet/
+        /// </summary>
+        Uri CanvasPage { get; }
+    }
 }
