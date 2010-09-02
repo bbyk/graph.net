@@ -49,28 +49,39 @@ namespace Facebook
     /// mapping strings to other objects, an array of objects, or a single 
     /// object, which represents a scalar.
     /// </summary>
-    public class JSONObject
+    public class JsonObject
     {
         long? _int;
         bool? _bool;
+        DateTime? _datetime;
+        readonly CultureInfo _ci;
 
         /// <summary>
-        /// Creates a JSONObject by parsing a string.
-        /// This is the only correct way to create a JSONObject.
+        /// Creates a <see cref="JsonObject"/> by parsing a string. This is the only correct way to create a JSONObject.
         /// </summary>
-        public static JSONObject CreateFromString(string s)
+        /// <param name="input">The JSON string to be deserialized.</param>
+        /// <param name="culture"></param>
+        /// <returns>The deserialized <see cref="JsonObject"/>.</returns>
+        /// <exception cref="ArgumentNullException">input is null.</exception>
+        /// <exception cref="FacebookAPIException">invalid json input.</exception>
+        public static JsonObject CreateFromString([NotNull] string input, [NotNull] CultureInfo culture)
         {
+            if (input == null)
+                throw FacebookApi.Nre("input");
+            if (culture == null)
+                throw FacebookApi.Nre("culture");
+
             object o;
             try
             {
-                o = new JavaScriptSerializer().DeserializeObject(s);
+                o = new JavaScriptSerializer().DeserializeObject(input);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
-                throw new FacebookAPIException("JSONException", "Not a valid JSON string.");
+                throw new FacebookAPIException("JSONException", "Not a valid JSON string.", ex);
             }
 
-            return Create(o);
+            return Create(o, culture);
         }
 
         /// <summary>
@@ -114,7 +125,7 @@ namespace Facebook
             get
             {
                 long tmp;
-                if (Int64.TryParse(_stringData, out tmp))
+                if (Int64.TryParse(_stringData, NumberStyles.Integer, _ci, out tmp))
                 {
                     _int = tmp;
                     return true;
@@ -142,10 +153,25 @@ namespace Facebook
             }
         }
 
+        public bool IsDateTime
+        {
+            get
+            {
+                DateTime tmp;
+                if (DateTime.TryParse(_stringData, _ci, DateTimeStyles.None, out tmp))
+                {
+                    _datetime = tmp;
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
         /// <summary>
         /// Returns this JSONObject as a dictionary
         /// </summary>
-        public Dictionary<string, JSONObject> Dictionary
+        public Dictionary<string, JsonObject> Dictionary
         {
             get
             {
@@ -156,7 +182,7 @@ namespace Facebook
         /// <summary>
         /// Returns this JSONObject as an array
         /// </summary>
-        public JSONObject[] Array
+        public JsonObject[] Array
         {
             get
             {
@@ -182,7 +208,7 @@ namespace Facebook
         {
             get
             {
-                return _int.HasValue ? _int.Value : Convert.ToInt64(_stringData, CultureInfo.InvariantCulture);
+                return _int.HasValue ? _int.Value : Convert.ToInt64(_stringData, _ci);
             }
         }
 
@@ -193,8 +219,16 @@ namespace Facebook
         {
             get
             {
-                return _bool.HasValue ? _bool.Value : Convert.ToBoolean(ExtractQuoted(), CultureInfo.InvariantCulture);
+                return _bool.HasValue ? _bool.Value : Convert.ToBoolean(ExtractQuoted(), _ci);
             }
+        }
+
+        /// <summary>
+        /// Returns this JSONObject as a datetime.
+        /// </summary>
+        public DateTime DateTime
+        {
+            get { return _datetime.HasValue ? _datetime.Value : Convert.ToDateTime(_stringData, _ci); }
         }
 
         /// <summary>
@@ -202,7 +236,7 @@ namespace Facebook
         /// </summary>
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             RecursiveObjectToString(this, sb, 0);
             return sb.ToString();
         }
@@ -210,34 +244,37 @@ namespace Facebook
         #region Private Members
 
         private string _stringData;
-        private JSONObject[] _arrayData;
-        private Dictionary<string, JSONObject> _dictData;
+        private JsonObject[] _arrayData;
+        private Dictionary<string, JsonObject> _dictData;
 
-        private JSONObject() { }
+        private JsonObject(CultureInfo ci)
+        {
+            _ci = ci;
+        }
 
         /// <summary>
         /// Recursively constructs this JSONObject 
         /// </summary>
-        private static JSONObject Create(object o)
+        private static JsonObject Create(object o, CultureInfo ci)
         {
-            JSONObject obj = new JSONObject();
+            var obj = new JsonObject(ci);
 
             object[] objArray;
             Dictionary<string, object> dict;
             if ((objArray = o as object[]) != null)
             {
-                obj._arrayData = new JSONObject[objArray.Length];
+                obj._arrayData = new JsonObject[objArray.Length];
                 for (int i = 0; i < obj._arrayData.Length; ++i)
                 {
-                    obj._arrayData[i] = Create(objArray[i]);
+                    obj._arrayData[i] = Create(objArray[i], ci);
                 }
             }
             else if ((dict = o as Dictionary<string, object>) != null)
             {
-                obj._dictData = new Dictionary<string, JSONObject>();
+                obj._dictData = new Dictionary<string, JsonObject>();
                 foreach (string key in dict.Keys)
                 {
-                    obj._dictData[key] = Create(dict[key]);
+                    obj._dictData[key] = Create(dict[key], ci);
                 }
             }
             else if (o != null) // o is a scalar
@@ -248,7 +285,7 @@ namespace Facebook
             return obj;
         }
 
-        private static void RecursiveObjectToString(JSONObject obj,
+        private static void RecursiveObjectToString(JsonObject obj,
             StringBuilder sb, int level)
         {
             if (obj.IsDictionary)
@@ -258,7 +295,7 @@ namespace Facebook
             }
             else if (obj.IsArray)
             {
-                foreach (JSONObject o in obj.Array)
+                foreach (JsonObject o in obj.Array)
                 {
                     RecursiveObjectToString(o, sb, level);
                     sb.AppendLine();
@@ -269,10 +306,10 @@ namespace Facebook
                 sb.Append(obj.String);
             }
         }
-        private static void RecursiveDictionaryToString(JSONObject obj,
+        private static void RecursiveDictionaryToString(JsonObject obj,
             StringBuilder sb, int level)
         {
-            foreach (KeyValuePair<string, JSONObject> kvp in obj.Dictionary)
+            foreach (KeyValuePair<string, JsonObject> kvp in obj.Dictionary)
             {
                 sb.Append(' ', level * 2);
                 sb.Append(kvp.Key);

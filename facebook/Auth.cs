@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Web;
 
 namespace Facebook
@@ -32,12 +33,12 @@ namespace Facebook
         /// </summary>
         /// <returns></returns>
         /// <exception cref="FacebookAPIException"></exception>
-        public FacebookAPI Authenticate()
+        public FacebookApi Authenticate()
         {
             string contentType;
-            string result = FacebookAPI.MakeRequest(
+            string result = FacebookApi.MakeRequest(
                 new Uri("https://graph.facebook.com/oauth/access_token"),
-                HttpVerb.POST,
+                HttpVerb.Post,
                 null,
                 new Dictionary<string, string> {
                     { "client_id", ClientId },
@@ -49,17 +50,17 @@ namespace Facebook
             switch (contentType)
             {
                 case "text/plain":
-                    return new FacebookAPI { AccessToken = HttpUtility.ParseQueryString(result)["access_token"] };
+                    return new FacebookApi { AccessToken = HttpUtility.ParseQueryString(result)["access_token"] };
                 case "text/javascript":
-                    var obj = JSONObject.CreateFromString(result);
+                    var obj = JsonObject.CreateFromString(result, CultureInfo.InvariantCulture);
                     if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
                     {
-                        throw FacebookAPI.ProtocolError(obj);
+                        throw FacebookApi.ProtocolError(obj);
                     }
 
-                    throw FacebookAPI.UnexpectedResponseError(result);
+                    throw FacebookApi.UnexpectedResponseError(result);
                 default:
-                    throw FacebookAPI.UnexpectedResponseError(result);
+                    throw FacebookApi.UnexpectedResponseError(result);
             }
         }
     }

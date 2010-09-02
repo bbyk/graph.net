@@ -16,10 +16,4 @@
       <capability name="version"        value="${version}" />
     </capabilities>
   </browser>
-
-  <!--<browser refID="GoogleChrome">
-    <capabilities>
-      <capability name="cookies" value="true" />
-    </capabilities>
-  </browser>-->
 </browsers>

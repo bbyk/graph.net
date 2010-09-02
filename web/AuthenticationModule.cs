@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Principal;
 using Facebook;
 using System.Web;
+using System.Globalization;
 
 namespace FacebookAPI.WebUI
 {
@@ -33,7 +35,7 @@ namespace FacebookAPI.WebUI
 
             forceLogin = forceLogin && context.Session["after_login"] == null;
 
-            var util = new CanvasUtil(this);
+            var util = new CanvasUtil(this, CultureInfo.CurrentCulture);
 
             if (util.Authenticate(context) && !forceLogin)
             {
@@ -48,7 +50,8 @@ namespace FacebookAPI.WebUI
             else
             {
                 context.Session["after_login"] = 0;
-                CanvasUtil.RedirectFromIFrame(context, util.GetLoginUrl(context.Request.Url));
+                var @params = new Dictionary<string, string> {{"req_perms", "user_birthday"}, {"cancel_url", "http://www.facebook.com"}};
+                CanvasUtil.RedirectFromIFrame(context, util.GetLoginUrl(context.Request.Url, @params));
                 return;
             }
         }

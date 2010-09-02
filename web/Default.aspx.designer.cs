@@ -11,7 +11,7 @@
 namespace FacebookAPI.WebUI {
     
     
-    public partial class _Default {
+    public partial class Default {
         
         /// <summary>
         /// frm control.
@@ -39,5 +39,23 @@ namespace FacebookAPI.WebUI {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal uiUserName;
+        
+        /// <summary>
+        /// uiBirthday control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiBirthday;
+        
+        /// <summary>
+        /// uiGender control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiGender;
     }
 }

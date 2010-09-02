@@ -44,4 +44,12 @@ namespace Facebook
         /// </summary>
         Uri CanvasPage { get; }
     }
+
+    /// <summary>
+    /// Indicates that the value of marked element could never be null.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Delegate | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public sealed class NotNullAttribute : Attribute
+    {
+    }
 }

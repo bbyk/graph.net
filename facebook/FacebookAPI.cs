@@ -45,26 +45,30 @@ using System.IO;
 using System.Web;
 using System.Globalization;
 using System.Security;
-using System.Collections.Specialized;
-using System.Security.Cryptography;
-using System.Web.SessionState;
 
 namespace Facebook
 {
 
     enum HttpVerb
     {
-        GET,
-        POST,
-        DELETE
+        Get,
+        Post,
+        Delete
     }
 
     /// <summary>
     /// Wrapper around the Facebook Graph API. 
     /// </summary>
-    public partial class FacebookAPI
+    public partial class FacebookApi
     {
-        public CultureInfo Culture { get; set; }
+        static readonly CultureInfo s_defaultCulture = CultureInfo.CurrentCulture;
+        CultureInfo _ci;
+
+        public CultureInfo Culture
+        {
+            get { return _ci ?? s_defaultCulture; }
+            set { _ci = value; }
+        }
 
         /// <summary>
         /// The access token used to authenticate API calls.
@@ -74,7 +78,12 @@ namespace Facebook
         /// <summary>
         /// Create a new instance of the API, with public access only.
         /// </summary>
-        public FacebookAPI()
+        public FacebookApi()
+        {
+        }
+
+        public FacebookApi(string token)
+            : this(token, s_defaultCulture)
         {
         }
 
@@ -84,12 +93,11 @@ namespace Facebook
         /// </summary>
         /// <param name="token">The access token used for
         /// authentication</param>
-        public FacebookAPI(string token)
+        /// <param name="culture"></param>
+        public FacebookApi(string token, CultureInfo culture)
         {
-            if (String.IsNullOrEmpty(token))
-                throw new ArgumentNullException("token");
-
             AccessToken = token;
+            Culture = culture;
         }
 
         /// <summary>
@@ -97,9 +105,9 @@ namespace Facebook
         /// </summary>
         /// <param name="relativePath">The path for the call,
         /// e.g. /username</param>
-        public JSONObject Get(string relativePath)
+        public JsonObject Get(string relativePath)
         {
-            return Call(relativePath, HttpVerb.GET, null);
+            return Call(relativePath, HttpVerb.Get, null);
         }
 
         /// <summary>
@@ -109,10 +117,10 @@ namespace Facebook
         /// e.g. /username</param>
         /// <param name="args">A dictionary of key/value pairs that
         /// will get passed as query arguments.</param>
-        public JSONObject Get(string relativePath, 
+        public JsonObject Get(string relativePath, 
                               Dictionary<string, string> args)
         {
-            return Call(relativePath, HttpVerb.GET, args);
+            return Call(relativePath, HttpVerb.Get, args);
         }
 
         /// <summary>
@@ -120,9 +128,9 @@ namespace Facebook
         /// </summary>
         /// <param name="relativePath">The path for the call,
         /// e.g. /username</param>
-        public JSONObject Delete(string relativePath)
+        public JsonObject Delete(string relativePath)
         {
-            return Call(relativePath, HttpVerb.DELETE, null);
+            return Call(relativePath, HttpVerb.Delete, null);
         }
 
         /// <summary>
@@ -133,10 +141,10 @@ namespace Facebook
         /// <param name="args">A dictionary of key/value pairs that
         /// will get passed as query arguments. These determine
         /// what will get set in the graph API.</param>
-        public JSONObject Post(string relativePath,
+        public JsonObject Post(string relativePath,
                                Dictionary<string, string> args)
         {
-            return Call(relativePath, HttpVerb.POST, args);
+            return Call(relativePath, HttpVerb.Post, args);
         }
 
         /// <summary>
@@ -148,12 +156,12 @@ namespace Facebook
         /// GET, POST, DELETE</param>
         /// <param name="args">A dictionary of key/value pairs that
         /// will get passed as query arguments.</param>
-        private JSONObject Call(string relativePath, 
+        private JsonObject Call(string relativePath,
                                 HttpVerb httpVerb,
                                 Dictionary<string, string> args)
         {
-            Uri baseURL = new Uri("https://graph.facebook.com");
-            Uri url = new Uri(baseURL, relativePath);
+            var baseUrl = new Uri("https://graph.facebook.com");
+            var url = new Uri(baseUrl, relativePath);
             if (args == null)
             {
                 args = new Dictionary<string, string>();
@@ -164,11 +172,11 @@ namespace Facebook
             }
 
             string tmp;
-            JSONObject obj = JSONObject.CreateFromString(MakeRequest(url,
+            var obj = JsonObject.CreateFromString(MakeRequest(url,
                                                                      httpVerb,
-                                                                     null,
+                                                                     Culture,
                                                                      args,
-                                                                     out tmp));
+                                                                     out tmp), Culture);
             if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
             {
                 throw ProtocolError(obj);
@@ -180,23 +188,25 @@ namespace Facebook
         /// Make an HTTP request, with the given query args
         /// </summary>
         /// <param name="url">The URL of the request</param>
-        /// <param name="verb">The HTTP verb to use</param>
+        /// <param name="httpVerb">The HTTP verb to use</param>
+        /// <param name="culture"></param>
         /// <param name="args">Dictionary of key/value pairs that represents
         /// the key/value pairs for the request</param>
+        /// <param name="contentType"></param>
         /// <exception cref="FacebookAPIException"></exception>
         /// <exception cref="SecurityException"></exception>
-        internal static string MakeRequest(Uri url, HttpVerb httpVerb, CultureInfo ci, Dictionary<string, string> args, out string contentType)
+        internal static string MakeRequest(Uri url, HttpVerb httpVerb, CultureInfo culture, Dictionary<string, string> args, out string contentType)
         { 
-            if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.GET)
+            if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.Get)
             {
                 url = new Uri(url.AbsoluteUri + EncodeDictionary(args, true));
             }
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Headers.Add(HttpRequestHeader.AcceptLanguage, ci == null ? "en" : ci.IetfLanguageTag.ToLowerInvariant());
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.Headers.Add(HttpRequestHeader.AcceptLanguage, culture.IetfLanguageTag.ToLowerInvariant());
             request.Method = httpVerb.ToString();
 
-            if (httpVerb == HttpVerb.POST)
+            if (httpVerb == HttpVerb.Post)
             {
                 string postData = EncodeDictionary(args, false);
 
@@ -259,7 +269,7 @@ namespace Facebook
         /// with a question mark (for GET requests)</param>
         internal static string EncodeDictionary(Dictionary<string, string> dict, bool questionMark)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if (questionMark && dict.Count > 0)
             {
                 sb.Append('?');
@@ -286,7 +296,7 @@ namespace Facebook
             return contentType.Split(';')[0];
         }
 
-        internal static Exception ProtocolError(JSONObject obj)
+        internal static Exception ProtocolError(JsonObject obj)
         {
             return new FacebookAPIException(obj.Dictionary["error"]
                                               .Dictionary["type"]
@@ -306,7 +316,7 @@ namespace Facebook
             return UnexpectedResponseError("Missing Content-Type header");
         }
 
-        internal static Exception NRE(string paramName)
+        internal static Exception Nre(string paramName)
         {
             return new ArgumentNullException(paramName);
         }

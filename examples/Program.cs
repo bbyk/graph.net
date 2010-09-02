@@ -53,10 +53,10 @@ namespace FacebookSampleApp
             // By default you can only get public info.
             string token = null;
 
-            Facebook.FacebookAPI api = new Facebook.FacebookAPI(token);
+            var api = new FacebookApi(token, CultureInfo.InvariantCulture);
             //api.Culture = new CultureInfo("en-us");
 
-            JSONObject me = api.Get("/4");
+            JsonObject me = api.Get("/4");
             Console.WriteLine(me.Dictionary["name"].String + " " + me.Dictionary["gender"].String);
         }
     }
