@@ -54,7 +54,7 @@ namespace Facebook
         long? _int;
         bool? _bool;
         DateTime? _datetime;
-        readonly CultureInfo _ci;
+        CultureInfo _ci;
 
         /// <summary>
         /// Creates a <see cref="JsonObject"/> by parsing a string. This is the only correct way to create a JSONObject.
@@ -64,12 +64,10 @@ namespace Facebook
         /// <returns>The deserialized <see cref="JsonObject"/>.</returns>
         /// <exception cref="ArgumentNullException">input is null.</exception>
         /// <exception cref="FacebookAPIException">invalid json input.</exception>
-        public static JsonObject CreateFromString([NotNull] string input, [NotNull] CultureInfo culture)
+        public static JsonObject CreateFromString([NotNull] string input, CultureInfo culture)
         {
             if (input == null)
                 throw FacebookApi.Nre("input");
-            if (culture == null)
-                throw FacebookApi.Nre("culture");
 
             object o;
             try
@@ -82,6 +80,12 @@ namespace Facebook
             }
 
             return Create(o, culture);
+        }
+
+        public CultureInfo Culture
+        {
+            get { return _ci ?? CultureInfo.CurrentCulture; }
+            set { _ci = value; }
         }
 
         /// <summary>
@@ -125,7 +129,7 @@ namespace Facebook
             get
             {
                 long tmp;
-                if (Int64.TryParse(_stringData, NumberStyles.Integer, _ci, out tmp))
+                if (Int64.TryParse(_stringData, NumberStyles.Integer, Culture, out tmp))
                 {
                     _int = tmp;
                     return true;
@@ -158,7 +162,7 @@ namespace Facebook
             get
             {
                 DateTime tmp;
-                if (DateTime.TryParse(_stringData, _ci, DateTimeStyles.None, out tmp))
+                if (DateTime.TryParse(_stringData, Culture, DateTimeStyles.None, out tmp))
                 {
                     _datetime = tmp;
                     return true;
@@ -208,7 +212,7 @@ namespace Facebook
         {
             get
             {
-                return _int.HasValue ? _int.Value : Convert.ToInt64(_stringData, _ci);
+                return _int.HasValue ? _int.Value : Convert.ToInt64(_stringData, Culture);
             }
         }
 
@@ -219,7 +223,7 @@ namespace Facebook
         {
             get
             {
-                return _bool.HasValue ? _bool.Value : Convert.ToBoolean(ExtractQuoted(), _ci);
+                return _bool.HasValue ? _bool.Value : Convert.ToBoolean(ExtractQuoted(), Culture);
             }
         }
 
@@ -228,7 +232,7 @@ namespace Facebook
         /// </summary>
         public DateTime DateTime
         {
-            get { return _datetime.HasValue ? _datetime.Value : Convert.ToDateTime(_stringData, _ci); }
+            get { return _datetime.HasValue ? _datetime.Value : Convert.ToDateTime(_stringData, Culture); }
         }
 
         /// <summary>
@@ -249,7 +253,7 @@ namespace Facebook
 
         private JsonObject(CultureInfo ci)
         {
-            _ci = ci;
+            _ci = ci ?? CultureInfo.CurrentCulture;
         }
 
         /// <summary>

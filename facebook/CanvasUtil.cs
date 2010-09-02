@@ -13,7 +13,6 @@ namespace Facebook
     public class CanvasUtil
     {
         #region Statics and contants
-        private static readonly CultureInfo s_defaultCulture = CultureInfo.CurrentCulture;
         static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         static readonly char[] s_separator = new char[] { '.' };
         static readonly Comparison<string> s_comparison = (s1, s2) => String.CompareOrdinal(s1, s2);
@@ -32,7 +31,7 @@ namespace Facebook
         #endregion
 
         public CanvasUtil([NotNull] IApplicationBindings bindings)
-            : this(bindings, s_defaultCulture)
+            : this(bindings, CultureInfo.CurrentCulture)
         {
         }
 
@@ -50,12 +49,12 @@ namespace Facebook
                 throw FacebookApi.Nre("bindings.SiteUrl");
 
             _bindings = bindings;
-            _ci = culture;
+            _ci = culture ?? CultureInfo.CurrentCulture;
         }
 
         public CultureInfo Culture
         {
-            get { return _ci ?? s_defaultCulture; }
+            get { return _ci ?? CultureInfo.CurrentCulture; }
             set { _ci = value; }
         }
 

@@ -61,12 +61,11 @@ namespace Facebook
     /// </summary>
     public partial class FacebookApi
     {
-        static readonly CultureInfo s_defaultCulture = CultureInfo.CurrentCulture;
         CultureInfo _ci;
 
         public CultureInfo Culture
         {
-            get { return _ci ?? s_defaultCulture; }
+            get { return _ci ?? CultureInfo.CurrentCulture; }
             set { _ci = value; }
         }
 
@@ -83,7 +82,7 @@ namespace Facebook
         }
 
         public FacebookApi(string token)
-            : this(token, s_defaultCulture)
+            : this(token, CultureInfo.CurrentCulture)
         {
         }
 
@@ -97,7 +96,7 @@ namespace Facebook
         public FacebookApi(string token, CultureInfo culture)
         {
             AccessToken = token;
-            Culture = culture;
+            Culture = culture ?? CultureInfo.CurrentCulture;
         }
 
         /// <summary>
