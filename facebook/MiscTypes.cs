@@ -3,25 +3,46 @@ using System.Runtime.Serialization;
 
 namespace Facebook
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     [DataContract(Namespace = "graph.net")]
     public class Session
     {
+        /// <summary>
+        /// 
+        /// </summary>
         [DataMember(Name = "user_id")]
         public long UserId { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [DataMember(Name = "oauth_token")]
         public string OAuthToken { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [DataMember(Name = "expires")]
         public DateTime Expires { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [DataMember(Name = "sig")]
         public string Signature { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsExpired { get { return DateTime.UtcNow > Expires; } }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public interface IApplicationBindings
     {
         /// <summary>

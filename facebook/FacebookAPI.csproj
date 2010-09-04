@@ -41,6 +41,8 @@ under the License.
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\FacebookAPI.XML</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -66,8 +68,10 @@ under the License.
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncResult.cs" />
     <Compile Include="Auth.cs" />
     <Compile Include="CanvasUtil.cs" />
+    <Compile Include="FacebookAPI.Async.cs" />
     <Compile Include="FacebookAPI.cs" />
     <Compile Include="FacebookAPIException.cs" />
     <Compile Include="Identity.cs" />

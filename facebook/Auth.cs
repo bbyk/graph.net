@@ -23,16 +23,23 @@ using System.Web;
 
 namespace Facebook
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Auth
     {
+        ///<summary>
+        ///</summary>
         public string ClientId { get; set; }
+        ///<summary>
+        ///</summary>
         public string ClientSecret { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="FacebookAPIException"></exception>
+        /// <exception cref="FacebookApiException"></exception>
         public FacebookApi Authenticate()
         {
             string contentType;
@@ -55,12 +62,12 @@ namespace Facebook
                     var obj = JsonObject.CreateFromString(result, CultureInfo.InvariantCulture);
                     if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
                     {
-                        throw FacebookApi.ProtocolError(obj);
+                        throw FacebookApi.GraphError(obj);
                     }
 
-                    throw FacebookApi.UnexpectedResponseError(result);
+                    throw FacebookApi.UnexpectedResponse(result);
                 default:
-                    throw FacebookApi.UnexpectedResponseError(result);
+                    throw FacebookApi.UnexpectedResponse(result);
             }
         }
     }

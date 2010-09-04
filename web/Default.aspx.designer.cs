@@ -57,5 +57,32 @@ namespace FacebookAPI.WebUI {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal uiGender;
+        
+        /// <summary>
+        /// uiAppUserId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiAppUserId;
+        
+        /// <summary>
+        /// uiAppUserName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiAppUserName;
+        
+        /// <summary>
+        /// uiAppGender control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiAppGender;
     }
 }

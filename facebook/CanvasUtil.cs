@@ -10,12 +10,17 @@ using System.Globalization;
 
 namespace Facebook
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class CanvasUtil
     {
         #region Statics and contants
         static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        static readonly char[] s_separator = new char[] { '.' };
+        static readonly char[] s_separator = new [] { '.' };
         static readonly Comparison<string> s_comparison = (s1, s2) => String.CompareOrdinal(s1, s2);
+        ///<summary>
+        ///</summary>
         public static readonly Dictionary<string, string> EmptyParams = new Dictionary<string, string>();
         static readonly HashSet<string> s_prohibitedKeys = new HashSet<string> { "session", "signed_request", "code" };
         #endregion
@@ -30,11 +35,19 @@ namespace Facebook
         CultureInfo _ci;
         #endregion
 
+        ///<summary>
+        ///</summary>
+        ///<param name="bindings"></param>
         public CanvasUtil([NotNull] IApplicationBindings bindings)
             : this(bindings, CultureInfo.CurrentCulture)
         {
         }
 
+        ///<summary>
+        ///</summary>
+        ///<param name="bindings"></param>
+        ///<param name="culture"></param>
+        ///<exception cref="Exception"></exception>
         public CanvasUtil([NotNull] IApplicationBindings bindings, CultureInfo culture)
         {
             if (bindings == null)
@@ -52,36 +65,60 @@ namespace Facebook
             _ci = culture ?? CultureInfo.CurrentCulture;
         }
 
+        ///<summary>
+        ///</summary>
         public CultureInfo Culture
         {
             get { return _ci ?? CultureInfo.CurrentCulture; }
             set { _ci = value; }
         }
 
+        ///<summary>
+        ///</summary>
         public string AppId { get { return _bindings.AppId; } }
+        ///<summary>
+        ///</summary>
         public bool HasToken { get { return _fbSession != null; } }
+        ///<summary>
+        ///</summary>
         public bool IsTokenExpired { get { return _fbSession == null ? true : _fbSession.IsExpired; } }
 
+        ///<summary>
+        ///</summary>
         public FacebookApi ApiClient
         {
             get { return _api ?? (_api = new FacebookApi(AccessToken, Culture)); }
         }
 
+        ///<summary>
+        ///</summary>
         public FacebookApi AppApiClient
         {
             get { return _appWideApi ?? (_appWideApi = new FacebookApi(AppAccessToken, Culture)); }
         }
 
+        ///<summary>
+        ///</summary>
         public string SessionStoreKey
         {
             get { return _sessionStoreKey ?? (_sessionStoreKey = "fbs_" + AppId); }
         }
 
+        ///<summary>
+        ///</summary>
+        ///<param name="currentUrl"></param>
+        ///<returns></returns>
         public string GetLoginUrl(Uri currentUrl)
         {
             return GetLoginUrl(currentUrl, EmptyParams);
         }
 
+        ///<summary>
+        ///</summary>
+        ///<param name="currentUrl"></param>
+        ///<param name="params"></param>
+        ///<returns></returns>
+        ///<exception cref="Exception"></exception>
         public string GetLoginUrl(Uri currentUrl, Dictionary<string, string> @params)
         {
             if (currentUrl == null)
@@ -89,28 +126,41 @@ namespace Facebook
 
             string cu = StripAwayProhibitedKeys(currentUrl);
 
-            var p = new Dictionary<string, string> {
-                { "api_key", AppId },
-                { "cancel_url", cu },
-                { "display", "page" },
-                { "fbconnect" , "1" },
-                { "next" , cu },
-                { "return_session", "1" },
-                { "session_version", "3" },
-                { "v", "1.0" }};
+            var p = new Dictionary<string, string>
+            {
+                {"api_key", AppId},
+                {"cancel_url", cu},
+                {"display", "page"},
+                {"fbconnect", "1"},
+                {"next", cu},
+                {"return_session", "1"},
+                {"session_version", "3"},
+                {"v", "1.0"}
+            };
 
             if (@params != null)
                 foreach (var kv in @params)
                     p[kv.Key] = kv.Value;
 
-            return "https://www.facebook.com/login.php" + FacebookApi.EncodeDictionary(p, true);
+            return "https://www.facebook.com/login.php?" + FacebookApi.EncodeDictionary(p);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentUrl"></param>
+        /// <returns></returns>
         public string GetLogoutUrl(Uri currentUrl)
         {
             return GetLogoutUrl(currentUrl, EmptyParams);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentUrl"></param>
+        /// <param name="params"></param>
+        /// <returns></returns>
         public string GetLogoutUrl(Uri currentUrl, Dictionary<string, string> @params)
         {
             if (currentUrl == null)
@@ -125,9 +175,14 @@ namespace Facebook
             foreach (var kv in @params)
                 p[kv.Key] = kv.Value;
 
-            return "https://www.facebook.com/login.php" + FacebookApi.EncodeDictionary(p, true);
+            return "https://www.facebook.com/login.php?" + FacebookApi.EncodeDictionary(p);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="relativeUrl"></param>
+        /// <returns></returns>
         public string ResolveSiteUrl(string relativeUrl)
         {
             if (relativeUrl == null)
@@ -136,6 +191,11 @@ namespace Facebook
             return _bindings.SiteUrl.AbsoluteUri + relativeUrl.TrimStart('~', '/');
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="relativeUrl"></param>
+        /// <returns></returns>
         public string ResolveCanvasPageUrl(string relativeUrl)
         {
             if (relativeUrl == null)
@@ -155,16 +215,27 @@ namespace Facebook
                     @params[name] = nvp[name];
             }
 
-            return currentUrl.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped) + FacebookApi.EncodeDictionary(@params, true);
+            return currentUrl.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped) + "?" + FacebookApi.EncodeDictionary(@params);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public long UserId
         {
             get { return _fbSession == null ? default(long) : _fbSession.UserId; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsAuthenticated { get { return _fbSession != null; } }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public bool Authenticate(HttpContext context)
         {
             if (context == null)
@@ -194,7 +265,7 @@ namespace Facebook
             return _fbSession != null;
         }
 
-        /// <exception cref="FacebookAPIException"></exception>
+        /// <exception cref="FacebookApiException"></exception>
         protected JsonObject GetSignedRequest(NameValueCollection request)
         {
             if (_signedRequest != null)
@@ -207,15 +278,15 @@ namespace Facebook
             return _signedRequest = ParseSignedRequest(srStr);
         }
 
-        /// <exception cref="FacebookAPIException"></exception>
+        /// <exception cref="FacebookApiException"></exception>
         protected JsonObject ParseSignedRequest(string signedRequest)
         {
             if (String.IsNullOrEmpty(_bindings.AppSecret))
-                throw new FacebookAPIException("Config", "AppSecret should be set");
+                throw new FacebookApiException("Config", "AppSecret should be set");
 
             string[] parts = signedRequest.Split(s_separator, 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 2)
-                throw new FacebookAPIException("Canvas", "Incorrect signature format");
+                throw new FacebookApiException("Canvas", "Incorrect signature format");
 
             string encodedSignature = parts[0];
             string encodedPayload = parts[1];
@@ -229,12 +300,12 @@ namespace Facebook
             }
             catch (FormatException ex)
             {
-                throw new FacebookAPIException("Canvas", "Incorrect signature", ex);
+                throw new FacebookApiException("Canvas", "Incorrect signature", ex);
             }
 
             var data = JsonObject.CreateFromString(payload, Culture);
             if (data.IsDictionary && data.Dictionary["algorithm"].String.ToUpperInvariant() != "HMAC-SHA256")
-                throw new FacebookAPIException("Canvas", "Unexpected hash algorithm");
+                throw new FacebookApiException("Canvas", "Unexpected hash algorithm");
 
             byte[] expectedSignature;
             using (KeyedHashAlgorithm hmac = new HMACSHA256(AppSecretBytes))
@@ -249,7 +320,7 @@ namespace Facebook
             }
 
 
-        @throw: throw new FacebookAPIException("Canvas", "Unexpected signature");
+        @throw: throw new FacebookApiException("Canvas", "Unexpected signature");
         }
 
         Session ValidateSession(JsonObject data)
@@ -262,7 +333,7 @@ namespace Facebook
             {
                 string expectedSignature = GenerateSignature(data);
                 if (expectedSignature != data.Dictionary["sig"].String)
-                    throw new FacebookAPIException("Canvas", "Unexpected signature");
+                    throw new FacebookApiException("Canvas", "Unexpected signature");
 
                 session = new Session
                 {
@@ -298,10 +369,10 @@ namespace Facebook
             get
             {
                 if (_fbSession == null)
-                    throw new FacebookAPIException("Canvas", "Session is not available");
+                    throw new FacebookApiException("Canvas", "Session is not available");
 
                 if (_fbSession.IsExpired)
-                    throw new FacebookAPIException("Canvas", "Token is expired");
+                    throw new FacebookApiException("Canvas", "Token is expired");
 
                 return _fbSession.OAuthToken;
             }
@@ -317,6 +388,11 @@ namespace Facebook
             get { return _appSecretBytes ?? (_appSecretBytes = Encoding.ASCII.GetBytes(_bindings.AppSecret)); }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="url"></param>
         public static void RedirectFromIFrame(HttpContext context, string url)
         {
             if (context == null)

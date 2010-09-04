@@ -37,31 +37,48 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Facebook
 {
-    public class FacebookAPIException : Exception
+    ///<summary>
+    ///</summary>
+    public class FacebookApiException : Exception
     {
+        ///<summary>
+        ///</summary>
+        public FacebookApiException() { }
+
+        ///<summary>
+        ///</summary>
         public string Type { get; set; }
 
-        public FacebookAPIException(string type, string msg)
+        ///<summary>
+        ///</summary>
+        ///<param name="type"></param>
+        ///<param name="msg"></param>
+        public FacebookApiException(string type, string msg)
             : this(type, msg, null)
         {
         }
 
-        public FacebookAPIException(string type, string msg, Exception ex)
+        ///<summary>
+        ///</summary>
+        ///<param name="type"></param>
+        ///<param name="msg"></param>
+        ///<param name="ex"></param>
+        public FacebookApiException(string type, string msg, Exception ex)
             : base(msg, ex)
         {
             Type = type;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return Type + ": " + base.ToString();
         }
-
-        public FacebookAPIException() { }
     }
 }

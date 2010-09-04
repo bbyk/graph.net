@@ -63,7 +63,7 @@ namespace Facebook
         /// <param name="culture"></param>
         /// <returns>The deserialized <see cref="JsonObject"/>.</returns>
         /// <exception cref="ArgumentNullException">input is null.</exception>
-        /// <exception cref="FacebookAPIException">invalid json input.</exception>
+        /// <exception cref="FacebookApiException">invalid json input.</exception>
         public static JsonObject CreateFromString([NotNull] string input, CultureInfo culture)
         {
             if (input == null)
@@ -76,12 +76,14 @@ namespace Facebook
             }
             catch (ArgumentException ex)
             {
-                throw new FacebookAPIException("JSONException", "Not a valid JSON string.", ex);
+                throw new FacebookApiException("JSONException", "Not a valid JSON string.", ex);
             }
 
             return Create(o, culture);
         }
 
+        ///<summary>
+        ///</summary>
         public CultureInfo Culture
         {
             get { return _ci ?? CultureInfo.CurrentCulture; }
@@ -157,6 +159,8 @@ namespace Facebook
             }
         }
 
+        ///<summary>
+        ///</summary>
         public bool IsDateTime
         {
             get
