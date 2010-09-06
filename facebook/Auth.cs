@@ -43,10 +43,9 @@ namespace Facebook
         public FacebookApi Authenticate()
         {
             string contentType;
-            string result = FacebookApi.MakeRequest(
+            string result = new FacebookApi().Request(
                 new Uri("https://graph.facebook.com/oauth/access_token"),
                 HttpVerb.Post,
-                null,
                 new Dictionary<string, string> {
                     { "client_id", ClientId },
                     { "client_secret", ClientSecret },

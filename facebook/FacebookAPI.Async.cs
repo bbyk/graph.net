@@ -17,7 +17,6 @@
 #endregion
 
 using System;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -34,10 +33,9 @@ namespace Facebook
             internal String ContentType;
         }
 
-        internal static IAsyncResult BeginRequest(
+        internal IAsyncResult BeginRequest(
             Uri url,
             HttpVerb httpVerb,
-            CultureInfo culture,
             Dictionary<string, string> args,
             AsyncCallback cb, object state)
         {
@@ -45,7 +43,8 @@ namespace Facebook
                 url = new Uri(url.AbsoluteUri + "?" + EncodeDictionary(args));
 
             var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Headers.Add(HttpRequestHeader.AcceptLanguage, culture.IetfLanguageTag.ToLowerInvariant());
+            request.Proxy = Proxy;
+            request.Headers.Add(HttpRequestHeader.AcceptLanguage, Culture.IetfLanguageTag.ToLowerInvariant());
             request.Method = httpVerb.ToString();
             var tar = new TypedAsyncResult<ResponseData>(cb, state);
 
@@ -160,7 +159,7 @@ namespace Facebook
                 args["access_token"] = AccessToken;
             }
 
-            return BeginRequest(url, httpVerb, Culture, args, cb, state);
+            return BeginRequest(url, httpVerb, args, cb, state);
         }
 
         private JsonObject EndCall(IAsyncResult ar)

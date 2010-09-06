@@ -62,6 +62,21 @@ namespace Facebook
     public partial class FacebookApi
     {
         CultureInfo _ci;
+        TimeSpan? _timeout;
+        static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(100);
+
+        ///<summary>
+        ///</summary>
+        public IWebProxy Proxy { get; set; }
+
+        ///<summary>
+        ///</summary>
+        ///<exception cref="ArgumentException"></exception>
+        public TimeSpan Timeout
+        {
+            get { return _timeout.HasValue ? _timeout.Value : s_defaultTimeout; }
+            set { if (value <= TimeSpan.Zero) throw new ArgumentException("Timeout should be greater than zero.", "value"); _timeout = value; }
+        }
 
         ///<summary>
         ///</summary>
@@ -176,9 +191,8 @@ namespace Facebook
             }
 
             string tmp;
-            var obj = JsonObject.CreateFromString(MakeRequest(url,
+            var obj = JsonObject.CreateFromString(Request(url,
                                                               httpVerb,
-                                                              Culture,
                                                               args,
                                                               out tmp), Culture);
             if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
@@ -193,13 +207,12 @@ namespace Facebook
         /// </summary>
         /// <param name="url">The URL of the request</param>
         /// <param name="httpVerb">The HTTP verb to use</param>
-        /// <param name="culture"></param>
         /// <param name="args">Dictionary of key/value pairs that represents
         /// the key/value pairs for the request</param>
         /// <param name="contentType"></param>
         /// <exception cref="FacebookApiException"></exception>
         /// <exception cref="SecurityException"></exception>
-        internal static string MakeRequest(Uri url, HttpVerb httpVerb, CultureInfo culture, Dictionary<string, string> args, out string contentType)
+        internal string Request(Uri url, HttpVerb httpVerb, Dictionary<string, string> args, out string contentType)
         { 
             if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.Get)
             {
@@ -207,7 +220,9 @@ namespace Facebook
             }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
-            request.Headers.Add(HttpRequestHeader.AcceptLanguage, culture.IetfLanguageTag.ToLowerInvariant());
+            request.Proxy = Proxy;
+            request.Timeout = (int)Timeout.TotalMilliseconds;
+            request.Headers.Add(HttpRequestHeader.AcceptLanguage, Culture.IetfLanguageTag.ToLowerInvariant());
             request.Method = httpVerb.ToString();
 
             if (httpVerb == HttpVerb.Post)
