@@ -53,14 +53,14 @@ Calling the Graph API
 
 First you instantiate an API object (passing in the token):
 
-    Facebook.FacebookAPI api = new Facebook.FacebookAPI(token);
+    Facebook.FacebookApi api = new Facebook.FacebookAPI(token);
 
 If you pass in `null` then you will only be able to access public data.
 
 If you use the `CanvasUtil` and authentication primitives, it may look like:
 
     var identity = (Identity)Context.User.Identity;
-    Facebook.FacebookAPI api = identity.Canvas.ApiClient;
+    Facebook.FacebookApi api = identity.Canvas.ApiClient;
 
 Then you make calls like:
 
@@ -101,5 +101,5 @@ documentation](http://developers.facebook.com/docs/api).
 Errors
 ------
 
-Any errors in making Graph API calls cause a `FacebookAPIException` or a 'TimeoutException' to be
+Any errors in making Graph API calls cause a `FacebookAPIException` or a `TimeoutException` to be
 thrown.
