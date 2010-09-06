@@ -7,13 +7,68 @@ using System.Globalization;
 
 namespace FacebookAPI.WebUI
 {
-    public class AuthenticationModule : IApplicationBindings, IHttpModule
+    public abstract class BaseAuthModule
     {
-        #region IHttpModule Members
-
         public void Dispose()
         {
         }
+
+        public string AppId
+        {
+            get { return "119774131404605"; }
+        }
+
+        public string AppSecret
+        {
+            get { return "9f4233f1193a1affd3de35a305c06a0c"; }
+        }
+    }
+
+    public class OAuthAuthenticationModule : BaseAuthModule, IHttpModule
+    {
+        public void Init(HttpApplication app)
+        {
+            app.AddOnPostAcquireRequestStateAsync((s, e, cb, state) =>
+            {
+                HttpContext context = app.Context;
+
+                var tar = new TypedAsyncResult<Identity>(cb, state);
+                if (context.Session == null || !context.Request.Url.AbsolutePath.Contains("/Connect"))
+                {
+                    tar.Complete(true);
+                    return tar;
+                }
+
+                var util = new OAuthUtil(AppId, AppSecret) { Culture = CultureInfo.CurrentCulture };
+                util.BeginAuthenticateRequest(context, tar.AsSafe(ar =>
+                {
+                    util.EndAuthenticateRequest(ar);
+                    tar.Complete(new Identity(util), false);
+                }), null);
+                return tar;
+            },
+            ar =>
+            {
+                var ident = TypedAsyncResult<Identity>.End(ar, null);
+                if (ident == null)
+                    return;
+
+                HttpContext context = app.Context;
+                if (!ident.IsAuthenticated)
+                {
+                    var @params = new Dictionary<string, string> { { "scope", "user_birthday" } };
+                    context.Response.Redirect(ident.Auth.GetLoginUrl(context.Request.Url, @params), false);
+                    context.ApplicationInstance.CompleteRequest();
+                    return;
+                }
+
+                context.User = new GenericPrincipal(ident, null);
+            });
+        }
+    }
+
+    public class CanvasAuthenticationModule : BaseAuthModule, IApplicationBindings, IHttpModule
+    {
 
         public void Init(HttpApplication app)
         {
@@ -22,11 +77,9 @@ namespace FacebookAPI.WebUI
             app.PostAcquireRequestState += (s, e) => OnEnter(app.Context);
         }
 
-        #endregion
-
         void OnEnter(HttpContext context)
         {
-            if (context.Session == null)
+            if (context.Session == null || !context.Request.Url.AbsolutePath.Contains("/Canvas"))
                 return;
 
             // the following browsers has 'Accept cookie from site I visit settings'. we need to make them store cookie.
@@ -45,7 +98,7 @@ namespace FacebookAPI.WebUI
                 if (!step.HasValue || step.Value != 0) return;
 
                 context.Session["after_login"] = 1;
-                CanvasUtil.RedirectFromIFrame(context, util.ResolveCanvasPageUrl("~/"));
+                CanvasUtil.RedirectFromIFrame(context, util.ResolveCanvasPageUrl(context.Request.AppRelativeCurrentExecutionFilePath));
             }
             else
             {
@@ -58,19 +111,9 @@ namespace FacebookAPI.WebUI
 
         #region IApplicationBindings Members
 
-        public string AppId
-        {
-            get { return "119774131404605"; }
-        }
-
-        public string AppSecret
-        {
-            get { return "9f4233f1193a1affd3de35a305c06a0c"; }
-        }
-
         public Uri SiteUrl
         {
-            get { return new Uri("http://localhost:24526/"); }
+            get { return new Uri("http://localhost/graph.net/"); }
         }
 
         public Uri CanvasPage

@@ -22,18 +22,18 @@ using System.Security.Principal;
 namespace Facebook
 {
     /// <summary>
-    /// 
     /// </summary>
     public class Identity : IIdentity
     {
-        readonly CanvasUtil _util;
+        [NonSerialized]
+        readonly IAuthUtil _util;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="util"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public Identity(CanvasUtil util)
+        public Identity(IAuthUtil util)
         {
             if (util == null)
                 throw new ArgumentNullException("util");
@@ -43,7 +43,7 @@ namespace Facebook
         /// <summary>
         /// 
         /// </summary>
-        public CanvasUtil Canvas { get { return _util; } }
+        public IAuthUtil Auth { get { return _util; } }
 
         #region IIdentity Members
 

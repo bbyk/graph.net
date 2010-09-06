@@ -9,18 +9,8 @@
 <body>
     <form id="frm" runat="server">
 
-    <asp:panel runat="server" groupingtext="Current session">
-      UserId: <asp:literal id="uiUserId" runat="server" /><br />
-      UserName: <asp:literal id="uiUserName" runat="server" /><br />
-      Birthday: <asp:literal id="uiBirthday" runat="server" /><br />
-      Gender: <asp:literal id="uiGender" runat="server" />
-    </asp:panel>
-
-    <asp:panel runat="server" groupingtext="AppWide session">
-      UserId: <asp:literal id="uiAppUserId" runat="server" /><br />
-      UserName: <asp:literal id="uiAppUserName" runat="server" /><br />
-      Gender: <asp:literal id="uiAppGender" runat="server" />
-    </asp:panel>
+      <p>Assume it's a canvas application [<asp:hyperLink runat="server" navigateurl="~/Canvas/Default.aspx" text="login" />]</p>
+      <p>Assume it's a connect application [<asp:hyperLink runat="server" navigateurl="~/Connect/Default.aspx" text="login" />]</p>
 
     </form>
 </body>

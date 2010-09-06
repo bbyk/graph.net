@@ -26,7 +26,7 @@ namespace Facebook
 {
     public partial class FacebookApi
     {
-        readonly static Func<Exception, Exception> s_exConverter = TransportError;
+        internal readonly static Func<Exception, Exception> ExConverter = TransportError;
         internal class ResponseData
         {
             internal string Json;
@@ -141,7 +141,7 @@ namespace Facebook
 
         internal static ResponseData EndRequest(IAsyncResult ar)
         {
-            return TypedAsyncResult<ResponseData>.End(ar, s_exConverter);
+            return TypedAsyncResult<ResponseData>.End(ar, ExConverter);
         }
 
         private IAsyncResult BeginCall(string relativePath,

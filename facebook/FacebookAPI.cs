@@ -334,7 +334,7 @@ namespace Facebook
             return UnexpectedResponse("Missing Content-Type header");
         }
 
-        internal static Exception Nre(string paramName)
+        internal static ArgumentNullException Nre(string paramName)
         {
             return new ArgumentNullException(paramName);
         }

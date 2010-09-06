@@ -57,10 +57,10 @@ First you instantiate an API object (passing in the token):
 
 If you pass in `null` then you will only be able to access public data.
 
-If you use the `CanvasUtil` and authentication primitives, it may look like:
+If you use the authentication primitives (`CanvasUtil`, `OAuthUtil`, `IAuthUtil`), it may look like:
 
     var identity = (Identity)Context.User.Identity;
-    Facebook.FacebookApi api = identity.Canvas.ApiClient;
+    Facebook.FacebookApi api = identity.Auth.ApiClient;
 
 Then you make calls like:
 

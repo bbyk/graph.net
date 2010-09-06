@@ -29,9 +29,8 @@ using System.Globalization;
 namespace Facebook
 {
     /// <summary>
-    /// 
     /// </summary>
-    public class CanvasUtil
+    public class CanvasUtil : IAuthUtil
     {
         #region Statics and contants
         static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -52,6 +51,8 @@ namespace Facebook
         readonly IApplicationBindings _bindings;
         CultureInfo _ci;
         #endregion
+
+        #region Contructors
 
         ///<summary>
         ///</summary>
@@ -83,6 +84,10 @@ namespace Facebook
             _ci = culture ?? CultureInfo.CurrentCulture;
         }
 
+        #endregion
+
+        #region Public methods and properties
+
         ///<summary>
         ///</summary>
         public CultureInfo Culture
@@ -94,12 +99,41 @@ namespace Facebook
         ///<summary>
         ///</summary>
         public string AppId { get { return _bindings.AppId; } }
-        ///<summary>
-        ///</summary>
-        public bool HasToken { get { return _fbSession != null; } }
-        ///<summary>
-        ///</summary>
-        public bool IsTokenExpired { get { return _fbSession == null ? true : _fbSession.IsExpired; } }
+
+        /// <summary>
+        /// </summary>
+        public string AppSecret { get { return _bindings.AppSecret; } }
+
+        /// <summary>
+        /// </summary>
+        public string AccessToken
+        {
+            get
+            {
+                if (_fbSession == null)
+                    throw new FacebookApiException("Canvas", "Session is not available");
+
+                if (_fbSession.IsExpired)
+                    throw new FacebookApiException("Canvas", "Token is expired");
+
+                return _fbSession.OAuthToken;
+            }
+        }
+
+        /// <summary>
+        /// </summary>
+        public DateTime Expires
+        {
+            get { return _fbSession == null ? default(DateTime) : _fbSession.Expires; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public long UserId
+        {
+            get { return _fbSession == null ? default(long) : _fbSession.UserId; }
+        }
 
         ///<summary>
         ///</summary>
@@ -164,7 +198,6 @@ namespace Facebook
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="currentUrl"></param>
         /// <returns></returns>
@@ -174,7 +207,6 @@ namespace Facebook
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="currentUrl"></param>
         /// <param name="params"></param>
@@ -187,17 +219,16 @@ namespace Facebook
             string cu = StripAwayProhibitedKeys(currentUrl);
 
             var p = new Dictionary<string, string> {
-                { "next" , cu },
-                { "access_token" , AccessToken }};
+                                                       { "next" , cu },
+                                                       { "access_token" , AccessToken }};
 
-            foreach (var kv in @params)
+            foreach (var kv in @params ?? EmptyParams)
                 p[kv.Key] = kv.Value;
 
-            return "https://www.facebook.com/login.php?" + FacebookApi.EncodeDictionary(p);
+            return "https://www.facebook.com/logout.php?" + FacebookApi.EncodeDictionary(p);
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="relativeUrl"></param>
         /// <returns></returns>
@@ -210,7 +241,6 @@ namespace Facebook
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="relativeUrl"></param>
         /// <returns></returns>
@@ -222,7 +252,7 @@ namespace Facebook
             return _bindings.CanvasPage.AbsoluteUri + relativeUrl.TrimStart('~', '/');
         }
 
-        static string StripAwayProhibitedKeys(Uri currentUrl)
+        internal static string StripAwayProhibitedKeys(Uri currentUrl)
         {
             NameValueCollection nvp = HttpUtility.ParseQueryString(currentUrl.GetComponents(UriComponents.Query, UriFormat.Unescaped));
             var @params = new Dictionary<string, string>(nvp.Count);
@@ -237,24 +267,14 @@ namespace Facebook
         }
 
         /// <summary>
-        /// 
         /// </summary>
-        public long UserId
-        {
-            get { return _fbSession == null ? default(long) : _fbSession.UserId; }
-        }
+        public bool IsAuthenticated { get { return _fbSession != null && !_fbSession.IsExpired; } }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public bool IsAuthenticated { get { return _fbSession != null; } }
-
-        /// <summary>
-        /// 
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public bool Authenticate(HttpContext context)
+        public bool Authenticate([NotNull] HttpContext context)
         {
             if (context == null)
                 throw FacebookApi.Nre("context");
@@ -283,8 +303,12 @@ namespace Facebook
             return _fbSession != null;
         }
 
+        #endregion
+
+        #region Private methods
+
         /// <exception cref="FacebookApiException"></exception>
-        protected JsonObject GetSignedRequest(NameValueCollection request)
+        JsonObject GetSignedRequest(NameValueCollection request)
         {
             if (_signedRequest != null)
                 return _signedRequest;
@@ -297,7 +321,7 @@ namespace Facebook
         }
 
         /// <exception cref="FacebookApiException"></exception>
-        protected JsonObject ParseSignedRequest(string signedRequest)
+        JsonObject ParseSignedRequest(string signedRequest)
         {
             if (String.IsNullOrEmpty(_bindings.AppSecret))
                 throw new FacebookApiException("Config", "AppSecret should be set");
@@ -338,7 +362,7 @@ namespace Facebook
             }
 
 
-        @throw: throw new FacebookApiException("Canvas", "Unexpected signature");
+            @throw: throw new FacebookApiException("Canvas", "Unexpected signature");
         }
 
         Session ValidateSession(JsonObject data)
@@ -382,20 +406,6 @@ namespace Facebook
                 return ByteArrayToHexString(md5.ComputeHash(Encoding.ASCII.GetBytes(sb.ToString())));
         }
 
-        string AccessToken
-        {
-            get
-            {
-                if (_fbSession == null)
-                    throw new FacebookApiException("Canvas", "Session is not available");
-
-                if (_fbSession.IsExpired)
-                    throw new FacebookApiException("Canvas", "Token is expired");
-
-                return _fbSession.OAuthToken;
-            }
-        }
-
         string AppAccessToken
         {
             get { return AppId + "|" + _bindings.AppSecret; }
@@ -406,8 +416,10 @@ namespace Facebook
             get { return _appSecretBytes ?? (_appSecretBytes = Encoding.ASCII.GetBytes(_bindings.AppSecret)); }
         }
 
+        #endregion
+
+        #region Static methods
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="context"></param>
         /// <param name="url"></param>
@@ -420,8 +432,8 @@ namespace Facebook
             context.Response.Cache.SetCacheability(HttpCacheability.NoCache);
             context.Response.Cache.SetAllowResponseInBrowserHistory(false);
             context.Response.Write(String.Format(
-                    @"<script type=""text/javascript"">if (parent != self) top.location.href = ""{0}""; else self.location.href = ""{0}""</script>",
-                    url));
+                @"<script type=""text/javascript"">if (parent != self) top.location.href = ""{0}""; else self.location.href = ""{0}""</script>",
+                url));
             context.ApplicationInstance.CompleteRequest();
         }
 
@@ -454,5 +466,7 @@ namespace Facebook
             s = s.PadRight(s.Length + (mod == 0 ? 0 : 4 - mod), '=');
             return Convert.FromBase64String(s);
         }
+
+        #endregion
     }
 }
