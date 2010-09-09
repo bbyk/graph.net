@@ -30,7 +30,7 @@ namespace Facebook
 {
     /// <summary>
     /// </summary>
-    public class CanvasUtil : IAuthUtil
+    public class CanvasAuthContext : IAuthContext
     {
         #region Statics and contants
         static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -57,7 +57,7 @@ namespace Facebook
         ///<summary>
         ///</summary>
         ///<param name="bindings"></param>
-        public CanvasUtil([NotNull] IApplicationBindings bindings)
+        public CanvasAuthContext([NotNull] IApplicationBindings bindings)
             : this(bindings, CultureInfo.CurrentCulture)
         {
         }
@@ -67,7 +67,7 @@ namespace Facebook
         ///<param name="bindings"></param>
         ///<param name="culture"></param>
         ///<exception cref="Exception"></exception>
-        public CanvasUtil([NotNull] IApplicationBindings bindings, CultureInfo culture)
+        public CanvasAuthContext([NotNull] IApplicationBindings bindings, CultureInfo culture)
         {
             if (bindings == null)
                 throw FacebookApi.Nre("bindings");
@@ -158,33 +158,33 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
-        ///<param name="currentUrl"></param>
+        ///<param name="nextUrl"></param>
         ///<returns></returns>
-        public string GetLoginUrl(Uri currentUrl)
+        public string GetLoginUrl(Uri nextUrl)
         {
-            return GetLoginUrl(currentUrl, EmptyParams);
+            return GetLoginUrl(nextUrl, EmptyParams);
         }
 
         ///<summary>
         ///</summary>
-        ///<param name="currentUrl"></param>
+        ///<param name="nextUrl"></param>
         ///<param name="params"></param>
         ///<returns></returns>
         ///<exception cref="Exception"></exception>
-        public string GetLoginUrl(Uri currentUrl, Dictionary<string, string> @params)
+        public string GetLoginUrl(Uri nextUrl, Dictionary<string, string> @params)
         {
-            if (currentUrl == null)
-                throw FacebookApi.Nre("currentUrl");
+            if (nextUrl == null)
+                throw FacebookApi.Nre("nextUrl");
 
-            string cu = StripAwayProhibitedKeys(currentUrl);
+            string next = StripAwayProhibitedKeys(nextUrl);
 
             var p = new Dictionary<string, string>
             {
                 {"api_key", AppId},
-                {"cancel_url", cu},
+                {"cancel_url", next},
                 {"display", "page"},
                 {"fbconnect", "1"},
-                {"next", cu},
+                {"next", next},
                 {"return_session", "1"},
                 {"session_version", "3"},
                 {"v", "1.0"}
@@ -199,27 +199,27 @@ namespace Facebook
 
         /// <summary>
         /// </summary>
-        /// <param name="currentUrl"></param>
+        /// <param name="nextUrl"></param>
         /// <returns></returns>
-        public string GetLogoutUrl(Uri currentUrl)
+        public string GetLogoutUrl(Uri nextUrl)
         {
-            return GetLogoutUrl(currentUrl, EmptyParams);
+            return GetLogoutUrl(nextUrl, EmptyParams);
         }
 
         /// <summary>
         /// </summary>
-        /// <param name="currentUrl"></param>
+        /// <param name="nextUrl"></param>
         /// <param name="params"></param>
         /// <returns></returns>
-        public string GetLogoutUrl(Uri currentUrl, Dictionary<string, string> @params)
+        public string GetLogoutUrl(Uri nextUrl, Dictionary<string, string> @params)
         {
-            if (currentUrl == null)
-                throw FacebookApi.Nre("currentUrl");
+            if (nextUrl == null)
+                throw FacebookApi.Nre("nextUrl");
 
-            string cu = StripAwayProhibitedKeys(currentUrl);
+            string next = StripAwayProhibitedKeys(nextUrl);
 
             var p = new Dictionary<string, string> {
-                                                       { "next" , cu },
+                                                       { "next" , next },
                                                        { "access_token" , AccessToken }};
 
             foreach (var kv in @params ?? EmptyParams)

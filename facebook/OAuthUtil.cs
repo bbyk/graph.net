@@ -27,7 +27,7 @@ namespace Facebook
 {
     /// <summary>
     /// </summary>
-    public class OAuthUtil : IAuthUtil
+    public class OAuthContext : IAuthContext
     {
         #region Statics and contants
         /// <summary>
@@ -50,7 +50,7 @@ namespace Facebook
         /// </summary>
         /// <param name="appId"></param>
         /// <param name="appSecret"></param>
-        public OAuthUtil([NotNull] string appId, [NotNull] string appSecret)
+        public OAuthContext([NotNull] string appId, [NotNull] string appSecret)
         {
             if (String.IsNullOrEmpty(appId))
                 throw FacebookApi.Nre("appId");
@@ -145,28 +145,28 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
-        ///<param name="currentUrl"></param>
+        ///<param name="nextUrl"></param>
         ///<returns></returns>
-        public string GetLoginUrl([NotNull] Uri currentUrl)
+        public string GetLoginUrl([NotNull] Uri nextUrl)
         {
-            return GetLoginUrl(currentUrl, EmptyParams);
+            return GetLoginUrl(nextUrl, EmptyParams);
         }
 
         ///<summary>
         ///</summary>
-        ///<param name="currentUrl"></param>
+        ///<param name="nextUrl"></param>
         ///<param name="params"></param>
         ///<returns></returns>
         ///<exception cref="ArgumentNullException"></exception>
-        public string GetLoginUrl([NotNull] Uri currentUrl, Dictionary<string, string> @params)
+        public string GetLoginUrl([NotNull] Uri nextUrl, Dictionary<string, string> @params)
         {
-            if (currentUrl == null)
-                throw FacebookApi.Nre("currentUrl");
+            if (nextUrl == null)
+                throw FacebookApi.Nre("nextUrl");
 
             var p = new Dictionary<string, string>
             {
                 {"client_id", AppId},
-                {"redirect_uri", CanvasUtil.StripAwayProhibitedKeys(currentUrl)},
+                {"redirect_uri", CanvasAuthContext.StripAwayProhibitedKeys(nextUrl)},
             };
 
             // merge params
@@ -179,27 +179,27 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
-        ///<param name="currentUrl"></param>
+        ///<param name="nextUrl"></param>
         ///<returns></returns>
-        public string GetLogoutUrl(Uri currentUrl)
+        public string GetLogoutUrl(Uri nextUrl)
         {
-            return GetLogoutUrl(currentUrl, EmptyParams);
+            return GetLogoutUrl(nextUrl, EmptyParams);
         }
 
         /// <summary>
         /// </summary>
-        /// <param name="currentUrl"></param>
+        /// <param name="nextUrl"></param>
         /// <param name="params"></param>
         /// <returns></returns>
-        public string GetLogoutUrl(Uri currentUrl, Dictionary<string, string> @params)
+        public string GetLogoutUrl(Uri nextUrl, Dictionary<string, string> @params)
         {
-            if (currentUrl == null)
-                throw FacebookApi.Nre("currentUrl");
+            if (nextUrl == null)
+                throw FacebookApi.Nre("nextUrl");
 
-            string cu = CanvasUtil.StripAwayProhibitedKeys(currentUrl);
+            string next = CanvasAuthContext.StripAwayProhibitedKeys(nextUrl);
 
             var p = new Dictionary<string, string> {
-                                                       { "next" , cu },
+                                                       { "next" , next },
                                                        { "access_token" , AccessToken }};
 
             foreach (var kv in @params ?? EmptyParams)
@@ -343,7 +343,7 @@ namespace Facebook
 
         #region Private and protected methods
 
-        long IAuthUtil.UserId { get { throw new NotSupportedException(); }}
+        long IAuthContext.UserId { get { throw new NotSupportedException(); }}
 
         /// <summary>
         /// </summary>

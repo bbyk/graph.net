@@ -11,7 +11,7 @@ namespace FacebookAPI.WebUI
             base.OnInit(e);
 
             var identity = (Identity)Context.User.Identity;
-            JsonObject data = identity.Auth.ApiClient.Get("/me");
+            JsonObject data = identity.AuthContext.ApiClient.Get("/me");
             uiUserId.Text = data.Dictionary["id"].String;
             uiUserName.Text = data.Dictionary["name"].String;
             uiBirthday.Text = data.Dictionary["birthday"].DateTime.ToLongDateString();
@@ -19,13 +19,13 @@ namespace FacebookAPI.WebUI
 
             IAsyncResult rar = null;
             Page.AddOnPreRenderCompleteAsync(
-                (s, args, cb, state) => identity.Auth.AppApiClient.BeginGet("/" + uiUserId.Text, cb, state),
+                (s, args, cb, state) => identity.AuthContext.AppApiClient.BeginGet("/" + uiUserId.Text, cb, state),
                 ar => rar = ar);
 
             Page.PreRenderComplete += delegate
             {
                 // call 'end' method here, because we want to let ASP.NET catch possible exceptions.
-                data = identity.Auth.AppApiClient.EndGet(rar);
+                data = identity.AuthContext.AppApiClient.EndGet(rar);
                 uiAppUserId.Text = data.Dictionary["id"].Integer.ToString();
                 uiAppUserName.Text = data.Dictionary["name"].String;
                 uiAppGender.Text = data.Dictionary["gender"].String;
@@ -36,7 +36,7 @@ namespace FacebookAPI.WebUI
         {
             var identity = (Identity)Context.User.Identity;
             Context.Session.Abandon();
-            Response.Redirect(identity.Auth.GetLogoutUrl(new Uri("http://localhost/graph.net"), null));
+            Response.Redirect(identity.AuthContext.GetLogoutUrl(new Uri("http://localhost/graph.net"), null));
         }
     }
 }

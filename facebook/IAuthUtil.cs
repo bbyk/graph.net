@@ -5,7 +5,7 @@ namespace Facebook
 {
     ///<summary>
     ///</summary>
-    public interface IAuthUtil
+    public interface IAuthContext
     {
         ///<summary>
         ///</summary>
@@ -13,6 +13,7 @@ namespace Facebook
 
         /// <summary>
         /// </summary>
+        /// <exception cref="NotSupportedException" />
         long UserId { get; }
 
         ///<summary>
@@ -21,10 +22,12 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
+        [NotNull]
         string AppSecret { get; }
 
         ///<summary>
         ///</summary>
+        [NotNull]
         string AccessToken { get; }
 
         ///<summary>
@@ -33,22 +36,26 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
+        [NotNull]
         FacebookApi ApiClient { get; }
 
         ///<summary>
         ///</summary>
+        [NotNull]
         FacebookApi AppApiClient { get; }
 
         ///<summary>
         ///</summary>
-        ///<param name="currentUrl"></param>
+        ///<param name="nextUrl"></param>
         ///<param name="params"></param>
         ///<returns></returns>
-        string GetLoginUrl(Uri currentUrl, Dictionary<string, string> @params);
+        ///<exception cref="ArgumentNullException" />
+        string GetLoginUrl([NotNull] Uri nextUrl, Dictionary<string, string> @params);
 
         /// <summary>
         /// </summary>
         /// <returns></returns>
-        string GetLogoutUrl(Uri currentUrl, Dictionary<string, string> @params);
+        ///<exception cref="ArgumentNullException" />
+        string GetLogoutUrl([NotNull] Uri nextUrl, Dictionary<string, string> @params);
     }
 }

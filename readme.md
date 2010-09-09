@@ -40,7 +40,7 @@ Access Token
 Most data accessible via the [Graph
 API](http://developers.facebook.com/docs/api) required an [access
 token](http://developers.facebook.com/docs/authentication/). This SDK includes
-a set of helpful methods of getting a token from users - see `CanvasUtil` and
+a set of helpful methods of getting a token from users - see `CanvasAuthUtil` and
 [AuthenticationModule](http://github.com/bbyk/graph.net/blob/master/web/AuthenticationModule.cs) implementations.
 Yet the best method will depend on what type of application is using it. A desktop application might show a
 popup browser window that loads the Facebook site, for example. You can read
@@ -57,10 +57,10 @@ First you instantiate an API object (passing in the token):
 
 If you pass in `null` then you will only be able to access public data.
 
-If you use the authentication primitives (`CanvasUtil`, `OAuthUtil`, `IAuthUtil`), it may look like:
+If you use the authentication primitives (`CanvasAuthContext`, `OAuthContext`, `IAuthContext`), it may look like:
 
     var identity = (Identity)Context.User.Identity;
-    Facebook.FacebookApi api = identity.Auth.ApiClient;
+    Facebook.FacebookApi api = identity.AuthContext.ApiClient;
 
 Then you make calls like:
 

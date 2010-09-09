@@ -39,7 +39,7 @@ namespace FacebookAPI.WebUI
                     return tar;
                 }
 
-                var util = new OAuthUtil(AppId, AppSecret) { Culture = CultureInfo.CurrentCulture };
+                var util = new OAuthContext(AppId, AppSecret) { Culture = CultureInfo.CurrentCulture };
                 util.BeginAuthenticateRequest(context, tar.AsSafe(ar =>
                 {
                     util.EndAuthenticateRequest(ar);
@@ -57,7 +57,7 @@ namespace FacebookAPI.WebUI
                 if (!ident.IsAuthenticated)
                 {
                     var @params = new Dictionary<string, string> { { "scope", "user_birthday" } };
-                    context.Response.Redirect(ident.Auth.GetLoginUrl(context.Request.Url, @params), false);
+                    context.Response.Redirect(ident.AuthContext.GetLoginUrl(context.Request.Url, @params), false);
                     context.ApplicationInstance.CompleteRequest();
                     return;
                 }
@@ -88,7 +88,7 @@ namespace FacebookAPI.WebUI
 
             forceLogin = forceLogin && context.Session["after_login"] == null;
 
-            var util = new CanvasUtil(this, CultureInfo.CurrentCulture);
+            var util = new CanvasAuthContext(this, CultureInfo.CurrentCulture);
 
             if (util.Authenticate(context) && !forceLogin)
             {
@@ -98,13 +98,13 @@ namespace FacebookAPI.WebUI
                 if (!step.HasValue || step.Value != 0) return;
 
                 context.Session["after_login"] = 1;
-                CanvasUtil.RedirectFromIFrame(context, util.ResolveCanvasPageUrl(context.Request.AppRelativeCurrentExecutionFilePath));
+                CanvasAuthContext.RedirectFromIFrame(context, util.ResolveCanvasPageUrl(context.Request.AppRelativeCurrentExecutionFilePath));
             }
             else
             {
                 context.Session["after_login"] = 0;
                 var @params = new Dictionary<string, string> {{"req_perms", "user_birthday"}, {"cancel_url", "http://www.facebook.com"}};
-                CanvasUtil.RedirectFromIFrame(context, util.GetLoginUrl(context.Request.Url, @params));
+                CanvasAuthContext.RedirectFromIFrame(context, util.GetLoginUrl(context.Request.Url, @params));
                 return;
             }
         }

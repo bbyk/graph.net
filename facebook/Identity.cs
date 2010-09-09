@@ -26,24 +26,24 @@ namespace Facebook
     public class Identity : IIdentity
     {
         [NonSerialized]
-        readonly IAuthUtil _util;
+        readonly IAuthContext _context;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="util"></param>
+        /// <param name="context"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public Identity(IAuthUtil util)
+        public Identity(IAuthContext context)
         {
-            if (util == null)
-                throw new ArgumentNullException("util");
-            _util = util;
+            if (context == null)
+                throw new ArgumentNullException("context");
+            _context = context;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public IAuthUtil Auth { get { return _util; } }
+        public IAuthContext AuthContext { get { return _context; } }
 
         #region IIdentity Members
 
@@ -60,7 +60,7 @@ namespace Facebook
         /// </summary>
         public bool IsAuthenticated
         {
-            get { return _util.IsAuthenticated; }
+            get { return _context.IsAuthenticated; }
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Facebook
         /// </summary>
         public string Name
         {
-            get { return _util.UserId.ToString(); }
+            get { return _context.UserId.ToString(); }
         }
 
         #endregion
