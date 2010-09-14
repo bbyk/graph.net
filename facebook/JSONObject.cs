@@ -76,7 +76,7 @@ namespace Facebook
             }
             catch (ArgumentException ex)
             {
-                throw new FacebookApiException("JSONException", "Not a valid JSON string.", ex);
+                throw new FacebookApiException("JSONException", "Not a valid JSON string: " + input, ex);
             }
 
             return Create(o, culture);

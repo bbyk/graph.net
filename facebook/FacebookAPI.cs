@@ -120,7 +120,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API GET request.
+        /// Makes a Facebook API GET request.
         /// </summary>
         /// <param name="relativePath">The path for the call,
         /// e.g. /username</param>
@@ -130,12 +130,10 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API GET request.
+        /// Makes a Facebook API GET request.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
-        /// <param name="args">A dictionary of key/value pairs that
-        /// will get passed as query arguments.</param>
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
+        /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments.</param>
         public JsonObject Get(string relativePath, 
                               Dictionary<string, string> args)
         {
@@ -143,7 +141,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API DELETE request.
+        /// Makes a Facebook API DELETE request.
         /// </summary>
         /// <param name="relativePath">The path for the call,
         /// e.g. /username</param>
@@ -153,13 +151,10 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API POST request.
+        /// Makes a Facebook API POST request.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
-        /// <param name="args">A dictionary of key/value pairs that
-        /// will get passed as query arguments. These determine
-        /// what will get set in the graph API.</param>
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
+        /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments. These determine what will get set in the graph API.</param>
         public JsonObject Post(string relativePath,
                                Dictionary<string, string> args)
         {
@@ -179,16 +174,15 @@ namespace Facebook
                                 HttpVerb httpVerb,
                                 Dictionary<string, string> args)
         {
-            var baseUrl = new Uri("https://graph.facebook.com");
-            var url = new Uri(baseUrl, relativePath);
+            relativePath = (relativePath ?? String.Empty).TrimStart('/');
+            var url = GetApiBaseUrl(relativePath) + relativePath;
+
             if (args == null)
-            {
                 args = new Dictionary<string, string>();
-            }
             if (!string.IsNullOrEmpty(AccessToken))
-            {
                 args["access_token"] = AccessToken;
-            }
+            if (url.StartsWith("https://api"))
+                args["format"] = "json";
 
             string tmp;
             var obj = JsonObject.CreateFromString(Request(url,
@@ -212,17 +206,18 @@ namespace Facebook
         /// <param name="contentType"></param>
         /// <exception cref="FacebookApiException"></exception>
         /// <exception cref="SecurityException"></exception>
-        internal string Request(Uri url, HttpVerb httpVerb, Dictionary<string, string> args, out string contentType)
+        internal string Request(string url, HttpVerb httpVerb, Dictionary<string, string> args, out string contentType)
         { 
             if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.Get)
             {
-                url = new Uri(url.AbsoluteUri + "?" + EncodeDictionary(args));
+                url = url+ (url.Contains("?") ? "&" : "?") + EncodeDictionary(args);
             }
 
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Proxy = Proxy;
             request.Timeout = (int)Timeout.TotalMilliseconds;
             request.Headers.Add(HttpRequestHeader.AcceptLanguage, Culture.IetfLanguageTag.ToLowerInvariant());
+            request.Accept = "text/javascript";
             request.Method = httpVerb.ToString();
 
             if (httpVerb == HttpVerb.Post)
@@ -347,6 +342,11 @@ namespace Facebook
         internal static Exception UnexpectedResponse(string response)
         {
             return new FacebookApiException("Unexpected Response", response);
+        }
+
+        static string GetApiBaseUrl(string relativeUrl)
+        {
+            return (relativeUrl ?? String.Empty).StartsWith("method/") ? "https://api.facebook.com/" : "https://graph.facebook.com/";
         }
     }
 }

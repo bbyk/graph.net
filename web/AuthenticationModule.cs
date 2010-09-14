@@ -103,7 +103,7 @@ namespace FacebookAPI.WebUI
             else
             {
                 context.Session["after_login"] = 0;
-                var @params = new Dictionary<string, string> {{"req_perms", "user_birthday"}, {"cancel_url", "http://www.facebook.com"}};
+                var @params = new Dictionary<string, string> { { "req_perms", "user_birthday" } };
                 CanvasAuthContext.RedirectFromIFrame(context, util.GetLoginUrl(context.Request.Url, @params));
                 return;
             }

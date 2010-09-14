@@ -247,7 +247,7 @@ namespace Facebook
 
             string contentType;
             string json = new FacebookApi().Request(
-                new Uri("https://graph.facebook.com/oauth/access_token"),
+                "https://graph.facebook.com/oauth/access_token",
                 HttpVerb.Post,
                 new Dictionary<string, string>
                 {
@@ -308,7 +308,7 @@ namespace Facebook
                 throw FacebookApi.Nre("code");
 
             return new FacebookApi().BeginRequest(
-                new Uri("https://graph.facebook.com/oauth/access_token"),
+                "https://graph.facebook.com/oauth/access_token",
                 HttpVerb.Post,
                 new Dictionary<string, string>
                 {

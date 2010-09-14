@@ -1,7 +1,7 @@
-Graph.net - Facebook Graph API .NET Client
+Graph.net - Facebook API .NET Client
 ==========================================
 
-This SDK provides a light wrapper around the Facebook Graph API with both **sync** and **async** calls.
+This SDK provides a light wrapper around the Facebook Graph and Old Rest APIs with both **sync** and **async** calls.
 Additionally it contains a set of useful canvas utilities to sustain authentication/authorization
 workflows.
 
@@ -38,7 +38,7 @@ Access Token
 ------------
 
 Most data accessible via the [Graph
-API](http://developers.facebook.com/docs/api) required an [access
+API](http://developers.facebook.com/docs/api) and the [Old Rest API](http://developers.facebook.com/docs/reference/rest/) required an [access
 token](http://developers.facebook.com/docs/authentication/). This SDK includes
 a set of helpful methods of getting a token from users - see `CanvasAuthUtil` and
 [AuthenticationModule](http://github.com/bbyk/graph.net/blob/master/web/AuthenticationModule.cs) implementations.
@@ -48,7 +48,7 @@ more about obtaining an access token [in the authentication
 guide](http://developers.facebook.com/docs/authentication/).
 
 
-Calling the Graph API
+Calling the APIs
 ---------------------
 
 First you instantiate an API object (passing in the token):
@@ -64,7 +64,14 @@ If you use the authentication primitives (`CanvasAuthContext`, `OAuthContext`, `
 
 Then you make calls like:
 
-    JsonObject result = api.Get("/userid");
+    JsonObject result = api.Get("/userid"); // or api.Get("userId")
+
+To call an Old Rest Api method use:
+
+    JsonObject result = api.Get("/method/friends.getAppUsers");
+
+Actually the request will go to the https:/api.facebook.com/method/friends.getAppUsers. So when a relative path
+starts with **/method/** or just **method/** it is a clue to the wrapper to use the Old Rest api.
 
 The same with **async** methods:
 

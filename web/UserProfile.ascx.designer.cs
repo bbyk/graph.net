@@ -50,6 +50,15 @@ namespace FacebookAPI.WebUI {
         protected global::System.Web.UI.WebControls.Literal uiGender;
         
         /// <summary>
+        /// uiAppFriends control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiAppFriends;
+        
+        /// <summary>
         /// uiAppUserId control.
         /// </summary>
         /// <remarks>

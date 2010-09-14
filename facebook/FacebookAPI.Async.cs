@@ -34,13 +34,13 @@ namespace Facebook
         }
 
         internal IAsyncResult BeginRequest(
-            Uri url,
+            string url,
             HttpVerb httpVerb,
             Dictionary<string, string> args,
             AsyncCallback cb, object state)
         {
             if (args != null && args.Keys.Count > 0 && httpVerb == HttpVerb.Get)
-                url = new Uri(url.AbsoluteUri + "?" + EncodeDictionary(args));
+                url = url+ (url.Contains("?") ? "&" : "?") + EncodeDictionary(args);
 
             var request = (HttpWebRequest)WebRequest.Create(url);
             request.Proxy = Proxy;
@@ -149,15 +149,15 @@ namespace Facebook
                         Dictionary<string, string> args,
                         AsyncCallback cb, object state)
         {
-            var baseUrl = new Uri("https://graph.facebook.com");
-            var url = new Uri(baseUrl, relativePath);
+            relativePath = (relativePath ?? String.Empty).TrimStart('/');
+            string url = GetApiBaseUrl(relativePath) + relativePath;
+
             if (args == null)
                 args = new Dictionary<string, string>();
-
             if (!string.IsNullOrEmpty(AccessToken))
-            {
                 args["access_token"] = AccessToken;
-            }
+            if (url.StartsWith("https://api"))
+                args["format"] = "json";
 
             return BeginRequest(url, httpVerb, args, cb, state);
         }
@@ -172,10 +172,9 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API GET request.
+        /// Makes a Facebook API GET request asynchronously.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
         /// <param name="cb"></param>
         /// <param name="state"></param>
         /// <exception cref="FacebookApiException"></exception>
@@ -185,12 +184,10 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API GET request.
+        /// Makes a Facebook API GET request asynchronously.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
-        /// <param name="args">A dictionary of key/value pairs that
-        /// will get passed as query arguments.</param>
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
+        /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments.</param>
         /// <param name="cb"></param>
         /// <param name="state"></param>
         /// <exception cref="FacebookApiException"></exception>
@@ -208,17 +205,14 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API POST request.
+        /// Makes a Facebook API POST request asynchronously.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
-        /// <param name="args">A dictionary of key/value pairs that
-        /// will get passed as query arguments. These determine
-        /// what will get set in the graph API.</param>
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
+        /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments. These determine what will get set in the graph API.</param>
         /// <param name="cb"></param>
         /// <param name="state"></param>
         /// <exception cref="FacebookApiException"></exception>
-        public IAsyncResult Post(string relativePath,
+        public IAsyncResult BeginPost(string relativePath,
             Dictionary<string, string> args,
             AsyncCallback cb, object state)
         {
@@ -237,10 +231,9 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook Graph API DELETE request.
+        /// Makes a Facebook API DELETE request asynchronously.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
         /// <param name="cb"></param>
         /// <param name="state"></param>
         /// <exception cref="FacebookApiException"></exception>
