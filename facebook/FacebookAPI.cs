@@ -189,10 +189,8 @@ namespace Facebook
                                                               httpVerb,
                                                               args,
                                                               out tmp), Culture);
-            if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
-            {
-                throw GraphError(obj);
-            }
+            if (obj.IsDictionary)
+                ThrowIfError(obj);
             return obj;
         }
 
@@ -309,14 +307,14 @@ namespace Facebook
             return contentType.Split(';')[0];
         }
 
-        internal static Exception GraphError(JsonObject obj)
+        internal static void ThrowIfError(JsonObject obj)
         {
-            return new FacebookApiException(obj.Dictionary["error"]
-                                              .Dictionary["type"]
-                                              .String,
-                                           obj.Dictionary["error"]
-                                              .Dictionary["message"]
-                                              .String);
+            if (obj.Dictionary.ContainsKey("error"))
+                throw new FacebookApiException( obj.Dictionary["error"].Dictionary["type"].String,
+                                                obj.Dictionary["error"].Dictionary["message"].String);
+            if (obj.Dictionary.ContainsKey("error_code"))
+                throw new FacebookApiException( obj.Dictionary["error_code"].String,
+                                                obj.Dictionary["error_msg"].String);
         }
 
         static Exception TransportError(Exception ex)
@@ -334,7 +332,7 @@ namespace Facebook
             return new ArgumentNullException(paramName);
         }
 
-        private static Exception OperationTimeout(Exception ex)
+        private static TimeoutException OperationTimeout(Exception ex)
         {
             return new TimeoutException("Operation timed out.", ex);
         }

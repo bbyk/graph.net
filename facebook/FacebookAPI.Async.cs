@@ -165,8 +165,8 @@ namespace Facebook
         private JsonObject EndCall(IAsyncResult ar)
         {
             var obj = JsonObject.CreateFromString(EndRequest(ar).Json, Culture);
-            if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
-                throw GraphError(obj);
+            if (obj.IsDictionary)
+                ThrowIfError(obj);
 
             return obj;
         }

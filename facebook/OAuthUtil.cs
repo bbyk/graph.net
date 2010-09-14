@@ -378,8 +378,8 @@ namespace Facebook
                     break;
                 case "text/javascript":
                     var obj = JsonObject.CreateFromString(json, CultureInfo.InvariantCulture);
-                    if (obj.IsDictionary && obj.Dictionary.ContainsKey("error"))
-                        throw FacebookApi.GraphError(obj);
+                    if (obj.IsDictionary)
+                        FacebookApi.ThrowIfError(obj);
 
                     throw FacebookApi.UnexpectedResponse(json);
                 default:

@@ -18,7 +18,17 @@ namespace FacebookAPI.WebUI
             uiUserName.Text = data.Dictionary["name"].String;
             uiBirthday.Text = data.Dictionary["birthday"].DateTime.ToLongDateString();
             uiGender.Text = data.Dictionary["gender"].String;
-            
+
+            try
+            {
+                identity.AuthContext.ApiClient.Get("method/dummy");
+            }
+            catch (FacebookApiException ex)
+            {
+                if (ex.Type != "3" /* unknown method */)
+                    throw;
+            }
+
             var syncData = identity.AuthContext.ApiClient.Get("method/friends.getAppUsers");
             data = identity.AuthContext.ApiClient.EndGet(identity.AuthContext.ApiClient.BeginGet("method/friends.getAppUsers", null, null));
             if (!syncData.IsArray || !data.IsArray || syncData.Array.Length != data.Array.Length)
