@@ -20,6 +20,10 @@ namespace Facebook
         ///</summary>
         string AppId { get; }
 
+        /// <summary>
+        /// </summary>
+        Session Session { get; }
+
         ///<summary>
         ///</summary>
         [NotNull]

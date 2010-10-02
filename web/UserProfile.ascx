@@ -16,3 +16,23 @@
 </asp:panel>
 
 [<asp:linkbutton runat="server" onclick="OnLogout">logout</asp:linkbutton>]
+
+<div id="fb-root" />
+
+<script>
+window.fbAsyncInit = function () {
+  FB.init({
+    appId: '115864255092665',
+    session: <%=FbSession%>,
+    status: false,
+    cookie: false,
+    xfbml: true
+  });
+};
+(function () {
+  var e = document.createElement('script'); e.async = true;
+  e.src = document.location.protocol +
+    '//connect.facebook.net/en_US/all.js';
+  document.getElementById('fb-root').appendChild(e);
+} ());
+</script>

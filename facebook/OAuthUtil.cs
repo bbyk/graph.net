@@ -79,6 +79,10 @@ namespace Facebook
             get { return _appSecret; }
         }
 
+        /// <summary>
+        /// </summary>
+        public Session Session { get { return _fbSession; } }
+
         ///<summary>
         ///</summary>
         public FacebookApi ApiClient
@@ -343,7 +347,7 @@ namespace Facebook
 
         #region Private and protected methods
 
-        long IAuthContext.UserId { get { throw new NotSupportedException(); }}
+        long IAuthContext.UserId { get { throw new NotSupportedException(); } }
 
         /// <summary>
         /// </summary>

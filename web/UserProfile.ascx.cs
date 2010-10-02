@@ -42,7 +42,7 @@ namespace FacebookAPI.WebUI
             {
                 data = identity.AuthContext.ApiClient.Get(null, new Dictionary<string, string>() { { "ids", String.Join(",", ids) } });
                 if (data.IsDictionary)
-                    uiAppFriends.Text = String.Join(", ", ids.Select(id => data.Dictionary[id.ToString()].Dictionary["name"].String).ToArray());
+                    uiAppFriends.Text = String.Join(", ", ids.Select(id => data.Dictionary[id.ToString()].Dictionary.ContainsKey("name") ? data.Dictionary[id.ToString()].Dictionary["name"].String : "n/a").ToArray());
             }
             IAsyncResult rar = null;
             Page.AddOnPreRenderCompleteAsync(
@@ -64,6 +64,15 @@ namespace FacebookAPI.WebUI
             var identity = (Identity)Context.User.Identity;
             Context.Session.Abandon();
             Response.Redirect(identity.AuthContext.GetLogoutUrl(new Uri("http://localhost/graph.net"), null));
+        }
+
+        protected string FbSession
+        {
+            get
+            {
+                var identity = (Identity)Context.User.Identity;
+                return identity.AuthContext.Session.ToJson();
+            }
         }
     }
 }

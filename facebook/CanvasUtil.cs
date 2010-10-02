@@ -34,7 +34,7 @@ namespace Facebook
     {
         #region Statics and contants
         static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        static readonly char[] s_separator = new [] { '.' };
+        static readonly char[] s_separator = new[] { '.' };
         static readonly Comparison<string> s_comparison = (s1, s2) => String.CompareOrdinal(s1, s2);
         ///<summary>
         ///</summary>
@@ -103,6 +103,10 @@ namespace Facebook
         /// <summary>
         /// </summary>
         public string AppSecret { get { return _bindings.AppSecret; } }
+
+        /// <summary>
+        /// </summary>
+        public Session Session { get { return _fbSession; } }
 
         /// <summary>
         /// </summary>
@@ -362,7 +366,7 @@ namespace Facebook
             }
 
 
-            @throw: throw new FacebookApiException("Canvas", "Unexpected signature");
+        @throw: throw new FacebookApiException("Canvas", "Unexpected signature");
         }
 
         Session ValidateSession(JsonObject data)

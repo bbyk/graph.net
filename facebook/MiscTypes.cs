@@ -17,7 +17,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Web.Script.Serialization;
+using System.Globalization;
 
 namespace Facebook
 {
@@ -28,16 +31,17 @@ namespace Facebook
     [DataContract(Namespace = "graph.net")]
     public class Session
     {
+        static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
         /// <summary>
-        /// 
         /// </summary>
-        [DataMember(Name = "user_id")]
+        [DataMember(Name = "uid")]
         public long UserId { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        [DataMember(Name = "oauth_token")]
+        [DataMember(Name = "access_token")]
         public string OAuthToken { get; set; }
 
         /// <summary>
@@ -47,15 +51,21 @@ namespace Facebook
         public DateTime Expires { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        [DataMember(Name = "sig")]
-        public string Signature { get; set; }
-
-        /// <summary>
-        /// 
         /// </summary>
         public bool IsExpired { get { return DateTime.UtcNow > Expires; } }
+
+        /// <summary>
+        /// </summary>
+        /// <returns></returns>
+        public string ToJson()
+        {
+            return new JavaScriptSerializer().Serialize(new Dictionary<string, string>
+            {
+                { "uid", UserId.ToString(CultureInfo.InvariantCulture) },
+                { "access_token", OAuthToken },
+                { "expires", ((long)(Expires - s_unixStart).TotalSeconds).ToString(CultureInfo.InvariantCulture) },
+            });
+        }
     }
 
     /// <summary>
