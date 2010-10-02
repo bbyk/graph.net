@@ -101,4 +101,48 @@ namespace Facebook
     public sealed class NotNullAttribute : Attribute
     {
     }
+
+    /// <summary>
+    /// </summary>
+    public struct LoginParams
+    {
+        /// <summary>
+        /// Comma separated list of requested extended perms, see <see cref="http://developers.facebook.com/docs/authentication/permissions"/>.
+        /// In case of OAuth will be converted to scope=..., in case of using login.php it will be req_perms=...
+        /// </summary>
+        public string ReqPerms { get; set; }
+
+        ///<summary>
+        ///</summary>
+        public LoginDialogDisplay Display { get; set; }
+
+        ///<summary>
+        ///</summary>
+        public string CancelUrl { get; set; }
+    }
+
+    ///<summary>
+    ///</summary>
+    public enum LoginDialogDisplay
+    {
+        ///<summary>
+        ///</summary>
+        NotSet,
+        ///<summary>
+        /// Full page (default)
+        ///</summary>
+        Page,
+        ///<summary>
+        /// Popup view
+        ///</summary>
+        Popup,
+
+        ///<summary>
+        ///</summary>
+        Wap,
+
+        /// <summary>
+        /// </summary>
+        Touch,
+    }
 }

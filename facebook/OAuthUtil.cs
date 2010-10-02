@@ -156,6 +156,26 @@ namespace Facebook
             return GetLoginUrl(nextUrl, EmptyParams);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nextUrl"></param>
+        /// <param name="params"></param>
+        /// <returns></returns>
+        public string GetLoginUrl(Uri nextUrl, LoginParams @params)
+        {
+            if (nextUrl == null)
+                throw FacebookApi.Nre("nextUrl");
+
+            var p = new Dictionary<string, string>();
+            if (!String.IsNullOrEmpty(@params.RequestedPerms))
+                p.Add("scope", @params.RequestedPerms);
+            if (@params.Display != LoginDialogDisplay.NotSet)
+                p.Add("display", @params.Display.ToString().ToLowerInvariant());
+
+            return GetLoginUrl(nextUrl, p);
+        }
+
         ///<summary>
         ///</summary>
         ///<param name="nextUrl"></param>

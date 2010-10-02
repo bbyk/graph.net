@@ -56,8 +56,8 @@ namespace FacebookAPI.WebUI
                 HttpContext context = app.Context;
                 if (!ident.IsAuthenticated)
                 {
-                    var @params = new Dictionary<string, string> { { "scope", "user_birthday" } };
-                    context.Response.Redirect(ident.AuthContext.GetLoginUrl(context.Request.Url, @params), false);
+                    //var @params = new Dictionary<string, string> { { "scope", "user_birthday" } };
+                    context.Response.Redirect(ident.AuthContext.GetLoginUrl(context.Request.Url, new LoginParams { RequestedPerms = "user_birthday" }), false);
                     context.ApplicationInstance.CompleteRequest();
                     return;
                 }

@@ -56,6 +56,13 @@ namespace Facebook
         ///<exception cref="ArgumentNullException" />
         string GetLoginUrl([NotNull] Uri nextUrl, Dictionary<string, string> @params);
 
+        ///<summary>
+        ///</summary>
+        ///<param name="nextUrl"></param>
+        ///<param name="params"></param>
+        ///<returns></returns>
+        string GetLoginUrl([NotNull] Uri nextUrl, LoginParams @params);
+
         /// <summary>
         /// </summary>
         /// <returns></returns>
