@@ -168,8 +168,8 @@ namespace Facebook
                 throw FacebookApi.Nre("nextUrl");
 
             var p = new Dictionary<string, string>();
-            if (!String.IsNullOrEmpty(@params.RequestedPerms))
-                p.Add("scope", @params.RequestedPerms);
+            if (!String.IsNullOrEmpty(@params.ReqPerms))
+                p.Add("scope", @params.ReqPerms);
             if (@params.Display != LoginDialogDisplay.NotSet)
                 p.Add("display", @params.Display.ToString().ToLowerInvariant());
 

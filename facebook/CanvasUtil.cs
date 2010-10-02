@@ -182,8 +182,8 @@ namespace Facebook
             var p = new Dictionary<string, string>();
             if (!String.IsNullOrEmpty(@params.CancelUrl))
                 p.Add("cancel_url", @params.CancelUrl);
-            if (!String.IsNullOrEmpty(@params.RequestedPerms))
-                p.Add("req_perms", @params.RequestedPerms);
+            if (!String.IsNullOrEmpty(@params.ReqPerms))
+                p.Add("req_perms", @params.ReqPerms);
             if (@params.Display != LoginDialogDisplay.NotSet)
                 p.Add("display", @params.Display.ToString().ToLowerInvariant());
 
