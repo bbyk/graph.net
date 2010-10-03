@@ -402,11 +402,14 @@ namespace Facebook
                 if (expectedSignature != data.Dictionary["sig"].String)
                     throw new FacebookApiException("Canvas", "Unexpected signature");
 
+                var expires = data.Dictionary["expires"].Integer;
+
                 session = new Session
                 {
                     UserId = data.Dictionary["uid"].Integer,
                     OAuthToken = data.Dictionary["access_token"].String,
-                    Expires = s_unixStart.AddSeconds(data.Dictionary["expires"].Integer),
+                    // if user granted 'offline_access' permission, the 'expires' value is 0.
+                    Expires = expires == 0 ? DateTime.MaxValue : s_unixStart.AddSeconds(expires),
                 };
             }
 
@@ -467,11 +470,14 @@ namespace Facebook
             if (!data.Dictionary.ContainsKey("oauth_token"))
                 return null;
 
+            var expires = data.Dictionary["expires"].Integer;
+
             return new Session
             {
                 UserId = data.Dictionary["user_id"].Integer,
                 OAuthToken = data.Dictionary["oauth_token"].String,
-                Expires = s_unixStart.AddSeconds(data.Dictionary["expires"].Integer),
+                // if user granted 'offline_access' permission, the 'expires' value is 0.
+                Expires = expires == 0 ? DateTime.MaxValue : s_unixStart.AddSeconds(expires),
             };
         }
 

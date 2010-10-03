@@ -107,7 +107,7 @@ namespace Facebook
     public struct LoginParams
     {
         /// <summary>
-        /// Comma separated list of requested extended perms, see <see cref="http://developers.facebook.com/docs/authentication/permissions"/>.
+        /// Comma separated list of requested extended perms, see <see href="http://developers.facebook.com/docs/authentication/permissions"/>.
         /// In case of OAuth will be converted to scope=..., in case of using login.php it will be req_perms=...
         /// </summary>
         public string ReqPerms { get; set; }
