@@ -59,11 +59,13 @@ namespace Facebook
         /// <returns></returns>
         public string ToJson()
         {
+            var expires = Expires == DateTime.MaxValue ? "0" : ((long)(Expires - s_unixStart).TotalSeconds).ToString(CultureInfo.InvariantCulture);
+
             return new JavaScriptSerializer().Serialize(new Dictionary<string, string>
             {
                 { "uid", UserId.ToString(CultureInfo.InvariantCulture) },
                 { "access_token", OAuthToken },
-                { "expires", ((long)(Expires - s_unixStart).TotalSeconds).ToString(CultureInfo.InvariantCulture) },
+                { "expires", expires },
             });
         }
     }
