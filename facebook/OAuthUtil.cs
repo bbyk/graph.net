@@ -27,7 +27,7 @@ namespace Facebook
 {
     /// <summary>
     /// </summary>
-    public class OAuthContext : IAuthContext
+    public class OAuthContext : AuthContextBase, IAuthContext
     {
         #region Statics and contants
         /// <summary>
@@ -38,10 +38,8 @@ namespace Facebook
         #region Members
         readonly string _appId;
         readonly string _appSecret;
-        CultureInfo _ci;
         FacebookApi _api, _appWideApi;
         Session _fbSession;
-        string _sessionStoreKey;
         #endregion
 
         #region Contructor
@@ -74,7 +72,7 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
-        public string AppSecret
+        public override string AppSecret
         {
             get { return _appSecret; }
         }
@@ -126,21 +124,6 @@ namespace Facebook
         public string AppAccessToken
         {
             get { return AppId + "|" + _appSecret; }
-        }
-
-        ///<summary>
-        ///</summary>
-        public string SessionStoreKey
-        {
-            get { return _sessionStoreKey ?? (_sessionStoreKey = "fbs_" + AppId); }
-        }
-
-        ///<summary>
-        ///</summary>
-        public CultureInfo Culture
-        {
-            get { return _ci ?? CultureInfo.CurrentCulture; }
-            set { _ci = value; }
         }
 
         /// <summary>
@@ -242,18 +225,31 @@ namespace Facebook
             if (context == null)
                 throw FacebookApi.Nre("context");
 
+            bool saveSession = true;
             string code = context.Request.QueryString["code"];
             if (!String.IsNullOrEmpty(code))
             {
                 Authenticate(code, GetCurrentUrl(context));
-                SaveSession(context);
             }
             else
             {
-                HttpSessionState httpSession = context.Session;
-                if (httpSession != null)
-                    _fbSession = httpSession[SessionStoreKey] as Session;
+                ISessionStorage ss = SessionStorage;
+                if (ss != null)
+                {
+                    _fbSession = ss.Session;
+                    if (_fbSession != null
+                        && !ss.IsSecure
+                        && _fbSession.Signature != GenerateSignature(_fbSession.ToJsonObject()))
+                    {
+                        _fbSession = null;
+                    }
+
+                    saveSession = _fbSession == null;
+                }
             }
+
+            if (saveSession)
+                SaveSession(context);
 
             return _fbSession != null;
         }
@@ -295,6 +291,7 @@ namespace Facebook
             if (context == null)
                 throw FacebookApi.Nre("context");
 
+            bool saveSession = true;
             var tar = new TypedAsyncResult<bool>(cb, state);
             string code = context.Request.QueryString["code"];
             if (!String.IsNullOrEmpty(code))
@@ -308,9 +305,22 @@ namespace Facebook
                     }),
                     null);
 
-            HttpSessionState httpSession = context.Session;
-            if (httpSession != null)
-                _fbSession = httpSession[SessionStoreKey] as Session;
+            ISessionStorage ss = SessionStorage;
+            if (ss != null)
+            {
+                _fbSession = ss.Session;
+                if (_fbSession != null
+                    && !ss.IsSecure
+                    && _fbSession.Signature != GenerateSignature(_fbSession.ToJsonObject()))
+                {
+                    _fbSession = null;
+                }
+
+                saveSession = _fbSession == null;
+            }
+
+            if (saveSession)
+                SaveSession(context);
 
             tar.Complete(true);
 
@@ -383,9 +393,10 @@ namespace Facebook
         ///<param name="context"></param>
         private void SaveSession(HttpContext context)
         {
-            HttpSessionState httpSession = context.Session;
-            if (httpSession != null)
-                httpSession[SessionStoreKey] = _fbSession;
+            ISessionStorage ss = SessionStorage;
+
+            if (ss != null)
+                ss.Session = _fbSession;
         }
 
         void ParseAuthResult(string contentType, string json)
@@ -399,6 +410,8 @@ namespace Facebook
                         OAuthToken = nvc["access_token"],
                         Expires = DateTime.UtcNow.AddSeconds(Convert.ToInt64(nvc["expires"], CultureInfo.InvariantCulture)),
                     };
+
+                    _fbSession.Signature = GenerateSignature(_fbSession.ToJsonObject());
                     break;
                 case "text/javascript":
                     var obj = JsonObject.CreateFromString(json, CultureInfo.InvariantCulture);

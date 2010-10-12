@@ -283,7 +283,7 @@ namespace Facebook
         /// Encode a dictionary of key/value pairs as an HTTP query string.
         /// </summary>
         /// <param name="dict">The dictionary to encode</param>
-        internal static string EncodeDictionary(Dictionary<string, string> dict)
+        public static string EncodeDictionary(Dictionary<string, string> dict)
         {
             var sb = new StringBuilder();
 

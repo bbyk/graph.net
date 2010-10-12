@@ -30,12 +30,12 @@ namespace Facebook
 {
     /// <summary>
     /// </summary>
-    public class CanvasAuthContext : IAuthContext
+    public class CanvasAuthContext : AuthContextBase, IAuthContext
     {
         #region Statics and contants
         static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         static readonly char[] s_separator = new[] { '.' };
-        static readonly Comparison<string> s_comparison = (s1, s2) => String.CompareOrdinal(s1, s2);
+
         ///<summary>
         ///</summary>
         public static readonly Dictionary<string, string> EmptyParams = new Dictionary<string, string>();
@@ -46,10 +46,9 @@ namespace Facebook
         byte[] _appSecretBytes;
         JsonObject _signedRequest;
         Session _fbSession;
-        string _sessionStoreKey;
         FacebookApi _api, _appWideApi;
         readonly IApplicationBindings _bindings;
-        CultureInfo _ci;
+
         #endregion
 
         #region Contructors
@@ -57,17 +56,8 @@ namespace Facebook
         ///<summary>
         ///</summary>
         ///<param name="bindings"></param>
-        public CanvasAuthContext([NotNull] IApplicationBindings bindings)
-            : this(bindings, CultureInfo.CurrentCulture)
-        {
-        }
-
-        ///<summary>
-        ///</summary>
-        ///<param name="bindings"></param>
-        ///<param name="culture"></param>
         ///<exception cref="Exception"></exception>
-        public CanvasAuthContext([NotNull] IApplicationBindings bindings, CultureInfo culture)
+        public CanvasAuthContext([NotNull] IApplicationBindings bindings)
         {
             if (bindings == null)
                 throw FacebookApi.Nre("bindings");
@@ -81,7 +71,6 @@ namespace Facebook
                 throw FacebookApi.Nre("bindings.SiteUrl");
 
             _bindings = bindings;
-            _ci = culture ?? CultureInfo.CurrentCulture;
         }
 
         #endregion
@@ -90,19 +79,11 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
-        public CultureInfo Culture
-        {
-            get { return _ci ?? CultureInfo.CurrentCulture; }
-            set { _ci = value; }
-        }
-
-        ///<summary>
-        ///</summary>
         public string AppId { get { return _bindings.AppId; } }
 
         /// <summary>
         /// </summary>
-        public string AppSecret { get { return _bindings.AppSecret; } }
+        public override string AppSecret { get { return _bindings.AppSecret; } }
 
         /// <summary>
         /// </summary>
@@ -151,13 +132,6 @@ namespace Facebook
         public FacebookApi AppApiClient
         {
             get { return _appWideApi ?? (_appWideApi = new FacebookApi(AppAccessToken, Culture)); }
-        }
-
-        ///<summary>
-        ///</summary>
-        public string SessionStoreKey
-        {
-            get { return _sessionStoreKey ?? (_sessionStoreKey = "fbs_" + AppId); }
         }
 
         ///<summary>
@@ -304,6 +278,7 @@ namespace Facebook
             if (context == null)
                 throw FacebookApi.Nre("context");
 
+            bool saveSession = true;
             HttpRequest req = context.Request;
             Session session = null;
             // try loading session from signed_request
@@ -316,14 +291,24 @@ namespace Facebook
             if (session == null && !String.IsNullOrEmpty(reqSession))
                 session = ValidateSession(JsonObject.CreateFromString(reqSession, Culture));
 
-            HttpSessionState httpSession = context.Session;
-            if (session == null && httpSession != null)
-                session = httpSession[SessionStoreKey] as Session;
+            ISessionStorage ss = SessionStorage;
+            if (session == null && ss != null)
+            {
+                session = ss.Session;
+                if (session != null
+                    && !ss.IsSecure
+                    && session.Signature != GenerateSignature(session.ToJsonObject()))
+                {
+                    session = null;
+                }
+
+                saveSession = session == null;
+            }
 
             _fbSession = session;
 
-            if (session != null && httpSession != null)
-                httpSession[SessionStoreKey] = _fbSession;
+            if (ss != null && saveSession)
+                ss.Session = _fbSession;
 
             return _fbSession != null;
         }
@@ -392,6 +377,9 @@ namespace Facebook
 
         Session ValidateSession(JsonObject data)
         {
+            if (!data.IsDictionary)
+                throw new ArgumentException("Should be a dictionary", "data");
+
             Session session = null;
             if (data.IsDictionary
                 && data.Dictionary.ContainsKey("uid")
@@ -402,36 +390,10 @@ namespace Facebook
                 if (expectedSignature != data.Dictionary["sig"].String)
                     throw new FacebookApiException("Canvas", "Unexpected signature");
 
-                var expires = data.Dictionary["expires"].Integer;
-
-                session = new Session
-                {
-                    UserId = data.Dictionary["uid"].Integer,
-                    OAuthToken = data.Dictionary["access_token"].String,
-                    // if user granted 'offline_access' permission, the 'expires' value is 0.
-                    Expires = expires == 0 ? DateTime.MaxValue : s_unixStart.AddSeconds(expires),
-                };
+                return Session.FromJsonObject(data);
             }
 
             return session;
-        }
-
-        string GenerateSignature(JsonObject data)
-        {
-            if (!data.IsDictionary)
-                throw new ArgumentException("Should be a dictionary", "data");
-
-            var keys = new List<string>(data.Dictionary.Keys.Where(k => k != "sig"));
-            keys.Sort(s_comparison);
-
-            var sb = new StringBuilder();
-            foreach (string key in keys)
-                sb.Append(key).Append('=').Append(data.Dictionary[key]);
-
-            sb.Append(_bindings.AppSecret);
-
-            using (HashAlgorithm md5 = MD5.Create())
-                return ByteArrayToHexString(md5.ComputeHash(Encoding.ASCII.GetBytes(sb.ToString())));
         }
 
         string AppAccessToken
@@ -465,37 +427,23 @@ namespace Facebook
             context.ApplicationInstance.CompleteRequest();
         }
 
-        static Session ToFacebookSession(JsonObject data)
+        Session ToFacebookSession(JsonObject data)
         {
             if (!data.Dictionary.ContainsKey("oauth_token"))
                 return null;
 
             var expires = data.Dictionary["expires"].Integer;
 
-            return new Session
+            var sess = new Session
             {
                 UserId = data.Dictionary["user_id"].Integer,
                 OAuthToken = data.Dictionary["oauth_token"].String,
                 // if user granted 'offline_access' permission, the 'expires' value is 0.
                 Expires = expires == 0 ? DateTime.MaxValue : s_unixStart.AddSeconds(expires),
             };
-        }
 
-        static string ByteArrayToHexString(byte[] bytes)
-        {
-            var builder = new StringBuilder(3 * bytes.Length);
-            foreach (byte t in bytes)
-                builder.AppendFormat("{0:x2}", t);
-            return builder.ToString().ToLowerInvariant();
-        }
-
-        /// <exception cref="FormatException"></exception>
-        static byte[] FromBase64String(string s)
-        {
-            s = s.Replace('-', '+').Replace('_', '/');
-            int mod = s.Length % 4;
-            s = s.PadRight(s.Length + (mod == 0 ? 0 : 4 - mod), '=');
-            return Convert.FromBase64String(s);
+            sess.Signature = GenerateSignature(sess.ToJsonObject());
+            return sess;
         }
 
         #endregion

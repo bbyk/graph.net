@@ -4,6 +4,7 @@ using System.Security.Principal;
 using Facebook;
 using System.Web;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace FacebookAPI.WebUI
 {
@@ -39,7 +40,18 @@ namespace FacebookAPI.WebUI
                     return tar;
                 }
 
-                var util = new OAuthContext(AppId, AppSecret) { Culture = CultureInfo.CurrentCulture };
+                var util = new OAuthContext(AppId, AppSecret)
+                {
+                    Culture = CultureInfo.CurrentCulture,
+                    ExProcessor = ex => Debug.Write(ex),
+                };
+
+                util.SessionStorage = new AspNetSessionStore
+                {
+                    AuthContext = util,
+                    HttpContext = context,
+                };
+
                 util.BeginAuthenticateRequest(context, tar.AsSafe(ar =>
                 {
                     util.EndAuthenticateRequest(ar);
@@ -69,7 +81,6 @@ namespace FacebookAPI.WebUI
 
     public class CanvasAuthenticationModule : BaseAuthModule, IApplicationBindings, IHttpModule
     {
-
         public void Init(HttpApplication app)
         {
             // a fix for IE. it wants us to declare P3P header (see http://msdn.microsoft.com/en-us/library/ms537343.aspx) when under iframe.
@@ -88,7 +99,17 @@ namespace FacebookAPI.WebUI
 
             forceLogin = forceLogin && context.Session["after_login"] == null;
 
-            var util = new CanvasAuthContext(this, CultureInfo.CurrentCulture);
+            var util = new CanvasAuthContext(this)
+            {
+                Culture = CultureInfo.CurrentCulture,
+                ExProcessor = ex => Debug.Write(ex),
+            };
+
+            util.SessionStorage = new CookieSessionStore
+            {
+                HttpContext = context,
+                AuthContext = util,
+            };
 
             if (util.Authenticate(context) && !forceLogin)
             {
@@ -100,7 +121,7 @@ namespace FacebookAPI.WebUI
                 context.Session["after_login"] = 1;
                 CanvasAuthContext.RedirectFromIFrame(context, util.ResolveCanvasPageUrl(context.Request.AppRelativeCurrentExecutionFilePath));
             }
-            else
+            else if (!(context.Handler is IClientAuth))
             {
                 context.Session["after_login"] = 0;
                 var @params = new Dictionary<string, string> { { "req_perms", "user_birthday" } };
@@ -122,5 +143,12 @@ namespace FacebookAPI.WebUI
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Just a marker to indicate we allow to login on the page by means of js.
+    /// </summary>
+    internal interface IClientAuth
+    {
     }
 }

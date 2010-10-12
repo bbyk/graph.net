@@ -17,8 +17,10 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Web.Script.Serialization;
 using System.Globalization;
 
@@ -50,23 +52,93 @@ namespace Facebook
         [DataMember(Name = "expires")]
         public DateTime Expires { get; set; }
 
+        ///<summary>
+        ///</summary>
+        [DataMember(Name = "sig")]
+        public string Signature { get; set; }
+
+        /// <summary>
+        /// So called session secret.
+        /// </summary>
+        [DataMember(Name = "secret")]
+        public string Secret { get; set; }
+
+        /// <summary>
+        /// Old session_key.
+        /// </summary>
+        [DataMember(Name = "session_key")]
+        [Obsolete("Use OAuthToken instead.")]
+        public string SessionKey { get; set; }
+
         /// <summary>
         /// </summary>
         public bool IsExpired { get { return DateTime.UtcNow > Expires; } }
+
+        ///<summary>
+        ///</summary>
+        ///<returns></returns>
+        public Dictionary<string, string> ToDictionary()
+        {
+            var expires = Expires == DateTime.MaxValue ? "0" : ((long)(Expires - s_unixStart).TotalSeconds).ToString(CultureInfo.InvariantCulture);
+
+            var dict = new Dictionary<string, string>(6);
+            if (UserId > default(long))
+                dict.Add("uid", UserId.ToString(CultureInfo.InvariantCulture));
+            dict.Add("access_token", OAuthToken);
+            dict.Add("expires", expires);
+
+            if (!String.IsNullOrEmpty(Secret))
+                dict.Add("secret", Secret);
+#pragma warning disable 612,618
+            if (!String.IsNullOrEmpty(SessionKey))
+                dict.Add("session_key", SessionKey);
+#pragma warning restore 612,618
+            if (!String.IsNullOrEmpty(Signature))
+                dict.Add("sig", Signature);
+
+            return dict;
+        }
+
+        ///<summary>
+        ///</summary>
+        ///<returns></returns>
+        public JsonObject ToJsonObject()
+        {
+            return JsonObject.Create(ToDictionary(), CultureInfo.InvariantCulture);
+        }
 
         /// <summary>
         /// </summary>
         /// <returns></returns>
         public string ToJson()
         {
-            var expires = Expires == DateTime.MaxValue ? "0" : ((long)(Expires - s_unixStart).TotalSeconds).ToString(CultureInfo.InvariantCulture);
+            return new JavaScriptSerializer().Serialize(ToDictionary());
+        }
 
-            return new JavaScriptSerializer().Serialize(new Dictionary<string, string>
+        ///<summary>
+        ///</summary>
+        ///<param name="data"></param>
+        ///<returns></returns>
+        ///<exception cref="ArgumentNullException"></exception>
+        public static Session FromJsonObject([NotNull] JsonObject data)
+        {
+            if (data == null)
+                throw FacebookApi.Nre("data");
+
+            var expires = data.Dictionary["expires"].Integer;
+
+            return new Session
             {
-                { "uid", UserId.ToString(CultureInfo.InvariantCulture) },
-                { "access_token", OAuthToken },
-                { "expires", expires },
-            });
+                UserId = data.Dictionary["uid"].Integer,
+                OAuthToken = data.Dictionary["access_token"].String,
+                // if user granted 'offline_access' permission, the 'expires' value is 0.
+                Expires = expires == 0 ? DateTime.MaxValue : s_unixStart.AddSeconds(expires),
+                Signature = data.Dictionary.ContainsKey("sig") ? data.Dictionary["sig"].String : null,
+                Secret = data.Dictionary.ContainsKey("secret") ? data.Dictionary["secret"].String : null,
+#pragma warning disable 612,618
+                SessionKey = data.Dictionary.ContainsKey("session_key") ? data.Dictionary["session_key"].String : null,
+#pragma warning restore 612,618
+            };
         }
     }
 
@@ -94,6 +166,19 @@ namespace Facebook
         /// E.g. http://apps.facebook.com/graphdotnet/
         /// </summary>
         string CanvasPage { get; }
+    }
+
+    ///<summary>
+    ///</summary>
+    public interface ISessionStorage
+    {
+        ///<summary>
+        ///</summary>
+        bool IsSecure { get; }
+
+        ///<summary>
+        ///</summary>
+        Session Session { get; set; }
     }
 
     /// <summary>

@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FacebookAPI.WebUI {
+namespace FacebookAPI.WebUI.Canvas {
     
     
-    public partial class Default {
+    public partial class Login {
         
         /// <summary>
         /// frm control.
@@ -21,5 +21,14 @@ namespace FacebookAPI.WebUI {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm frm;
+        
+        /// <summary>
+        /// uiName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal uiName;
     }
 }

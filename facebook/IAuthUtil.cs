@@ -50,6 +50,10 @@ namespace Facebook
 
         ///<summary>
         ///</summary>
+        Action<Exception> ExProcessor { get; set; }
+
+        ///<summary>
+        ///</summary>
         ///<param name="nextUrl"></param>
         ///<param name="params"></param>
         ///<returns></returns>

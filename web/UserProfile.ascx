@@ -22,7 +22,7 @@
 <script>
 window.fbAsyncInit = function () {
   FB.init({
-    appId: '115864255092665',
+    appId: '119774131404605',
     session: <%=FbSession%>,
     status: false,
     cookie: false,

@@ -69,6 +69,8 @@ under the License.
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncResult.cs" />
+    <Compile Include="AuthContextBase.cs" />
+    <Compile Include="SessionStores.cs" />
     <Compile Include="IAuthUtil.cs" />
     <Compile Include="OAuthUtil.cs" />
     <Compile Include="CanvasUtil.cs" />

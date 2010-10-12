@@ -11,7 +11,7 @@
 
       <p>Assume it's a canvas application [<asp:hyperLink runat="server" navigateurl="~/Canvas/Default.aspx" text="login" />]</p>
       <p>Assume it's a connect application [<asp:hyperLink runat="server" navigateurl="~/Connect/Default.aspx" text="login" />]</p>
-
+      <p>Assume it's a connect application with js authentication [<asp:hyperLink runat="server" navigateurl="~/Canvas/Login.aspx" text="login" />]</p></p>
     </form>
 </body>
 </html>

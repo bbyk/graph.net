@@ -38,6 +38,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text;
 using System.Globalization;
 using System.Web.Script.Serialization;
@@ -49,10 +50,14 @@ namespace Facebook
     /// mapping strings to other objects, an array of objects, or a single 
     /// object, which represents a scalar.
     /// </summary>
+    [Serializable]
     public class JsonObject
     {
+        [NonSerialized]
         long? _int;
+        [NonSerialized]
         bool? _bool;
+        [NonSerialized]
         DateTime? _datetime;
         CultureInfo _ci;
 
@@ -263,12 +268,14 @@ namespace Facebook
         /// <summary>
         /// Recursively constructs this JSONObject 
         /// </summary>
-        private static JsonObject Create(object o, CultureInfo ci)
+        internal static JsonObject Create(object o, CultureInfo ci)
         {
             var obj = new JsonObject(ci);
 
             object[] objArray;
             Dictionary<string, object> dict;
+            Dictionary<string, string> sdict;
+            NameValueCollection nvc;
             if ((objArray = o as object[]) != null)
             {
                 obj._arrayData = new JsonObject[objArray.Length];
@@ -279,10 +286,26 @@ namespace Facebook
             }
             else if ((dict = o as Dictionary<string, object>) != null)
             {
-                obj._dictData = new Dictionary<string, JsonObject>();
+                obj._dictData = new Dictionary<string, JsonObject>(dict.Count);
                 foreach (string key in dict.Keys)
                 {
                     obj._dictData[key] = Create(dict[key], ci);
+                }
+            }
+            else if ((sdict = o as Dictionary<string, string>) != null)
+            {
+                obj._dictData = new Dictionary<string, JsonObject>(sdict.Count);
+                foreach (string key in sdict.Keys)
+                {
+                    obj._dictData[key] = new JsonObject(ci) { _stringData = sdict[key] };
+                }
+            }
+            else if ((nvc = o as NameValueCollection) != null)
+            {
+                obj._dictData = new Dictionary<string, JsonObject>(nvc.Count);
+                foreach (string key in nvc)
+                {
+                    obj._dictData[key] = new JsonObject(ci) { _stringData = nvc[key] };
                 }
             }
             else if (o != null) // o is a scalar
