@@ -111,14 +111,14 @@ namespace FacebookAPI.WebUI
 
         #region IApplicationBindings Members
 
-        public Uri SiteUrl
+        public string SiteUrl
         {
-            get { return new Uri("http://localhost/graph.net/"); }
+            get { return "http://localhost/graph.net/"; }
         }
 
-        public Uri CanvasPage
+        public string CanvasPage
         {
-            get { return new Uri("http://apps.facebook.com/graphdotnet/"); }
+            get { return "http://apps.facebook.com/graphdotnet/"; }
         }
 
         #endregion

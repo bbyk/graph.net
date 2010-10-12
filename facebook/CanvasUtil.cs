@@ -262,7 +262,7 @@ namespace Facebook
             if (relativeUrl == null)
                 throw FacebookApi.Nre("relativeUrl");
 
-            return _bindings.SiteUrl.AbsoluteUri + relativeUrl.TrimStart('~', '/');
+            return _bindings.SiteUrl.TrimEnd('/') + '/' + relativeUrl.TrimStart('~', '/');
         }
 
         /// <summary>
@@ -274,7 +274,7 @@ namespace Facebook
             if (relativeUrl == null)
                 throw FacebookApi.Nre("relativeUrl");
 
-            return _bindings.CanvasPage.AbsoluteUri + relativeUrl.TrimStart('~', '/');
+            return _bindings.CanvasPage.TrimEnd('/') + '/' + relativeUrl.TrimStart('~', '/');
         }
 
         internal static string StripAwayProhibitedKeys(Uri currentUrl)

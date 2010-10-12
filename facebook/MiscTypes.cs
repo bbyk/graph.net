@@ -88,12 +88,12 @@ namespace Facebook
         /// <summary>
         /// E.g. http://localhost:24526/
         /// </summary>
-        Uri SiteUrl { get; }
+        string SiteUrl { get; }
 
         /// <summary>
         /// E.g. http://apps.facebook.com/graphdotnet/
         /// </summary>
-        Uri CanvasPage { get; }
+        string CanvasPage { get; }
     }
 
     /// <summary>
