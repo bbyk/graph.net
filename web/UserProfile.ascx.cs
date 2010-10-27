@@ -40,7 +40,7 @@ namespace FacebookAPI.WebUI
                 uiAppFriends.Visible = false;
             else
             {
-                data = identity.AuthContext.ApiClient.Get(null, new Dictionary<string, string>() { { "ids", String.Join(",", ids) } });
+                data = identity.AuthContext.ApiClient.Get(null, new Dictionary<string, string> { { "ids", String.Join(",", ids) } });
                 if (data.IsDictionary)
                     uiAppFriends.Text = String.Join(", ", ids.Select(id => data.Dictionary[id.ToString()].Dictionary.ContainsKey("name") ? data.Dictionary[id.ToString()].Dictionary["name"].String : "n/a").ToArray());
             }

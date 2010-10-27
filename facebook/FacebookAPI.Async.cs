@@ -172,83 +172,115 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Makes a Facebook API GET request asynchronously.
+        /// Begins to makes a Facebook API GET request asynchronously.
         /// </summary>
         /// <param name="relativePath">The path for the call, e.g. /username</param>
-        /// <param name="cb"></param>
-        /// <param name="state"></param>
-        /// <exception cref="FacebookApiException"></exception>
-        public IAsyncResult BeginGet(string relativePath, AsyncCallback cb, object state)
+        /// <param name="cb">A callback to call upon operation complete.</param>
+        /// <param name="state">user state to pass to the callback.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="relativePath"/> is null.</exception>
+        /// <exception cref="FacebookApiException">pre-request evaluation is failed.</exception>
+        public IAsyncResult BeginGet([NotNull] string relativePath, [CanBeNull] AsyncCallback cb, [CanBeNull] object state)
         {
+            if (relativePath == null)
+                throw Nre("relativePath");
             return BeginGet(relativePath, null, cb, state);
         }
 
         /// <summary>
-        /// Makes a Facebook API GET request asynchronously.
+        /// Makes a Facebook API GET request asynchronously. If <paramref name="relativePath"/> is <c>null</c>, <paramref name="args"/> should contain <c>ids</c> or another facebook blessed approach to mean it is a batch call.
         /// </summary>
         /// <param name="relativePath">The path for the call, e.g. /username</param>
         /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments.</param>
-        /// <param name="cb"></param>
-        /// <param name="state"></param>
-        /// <exception cref="FacebookApiException"></exception>
-        public IAsyncResult BeginGet(string relativePath,
-            Dictionary<string, string> args,
-            AsyncCallback cb, object state)
+        /// <param name="cb">A callback to call upon operation complete.</param>
+        /// <param name="state">user state to pass to the callback.</param>
+        /// <exception cref="FacebookApiException">pre-request evaluation is failed.</exception>
+        public IAsyncResult BeginGet([CanBeNull] string relativePath,
+            [CanBeNull] Dictionary<string, string> args,
+            [CanBeNull] AsyncCallback cb,
+            [CanBeNull] object state)
         {
             return BeginCall(relativePath, HttpVerb.Get, args, cb, state);
         }
 
-        /// <exception cref="FacebookApiException"></exception>
+        /// <summary>
+        /// Returns json status of the current operations which has been executing asynchronously.
+        /// </summary>
+        /// <param name="ar">The current operation async result.</param>
+        /// <returns>json status of the operation.</returns>
+        /// <exception cref="FacebookApiException">an exception occurred during the async call.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="ar"/> is null.</exception>
         public JsonObject EndGet(IAsyncResult ar)
         {
             return EndCall(ar);
         }
 
         /// <summary>
-        /// Makes a Facebook API POST request asynchronously.
+        /// Begins to make a Facebook API POST request asynchronously. If <paramref name="relativePath"/> is <c>null</c>, <paramref name="args"/> should contain <c>ids</c> or another facebook blessed approach to mean it is a batch call.
         /// </summary>
         /// <param name="relativePath">The path for the call, e.g. /username</param>
         /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments. These determine what will get set in the graph API.</param>
-        /// <param name="cb"></param>
-        /// <param name="state"></param>
-        /// <exception cref="FacebookApiException"></exception>
-        public IAsyncResult BeginPost(string relativePath,
-            Dictionary<string, string> args,
-            AsyncCallback cb, object state)
+        /// <param name="cb">A callback to call upon operation complete.</param>
+        /// <param name="state">user state to pass to the callback.</param>
+        /// <exception cref="FacebookApiException">pre-request evaluation is failed.</exception>
+        public IAsyncResult BeginPost([CanBeNull] string relativePath,
+            [CanBeNull] Dictionary<string, string> args,
+            [CanBeNull] AsyncCallback cb,
+            [CanBeNull] object state)
         {
             return BeginCall(relativePath, HttpVerb.Post, args, cb, state);
         }
 
         /// <summary>
-        /// 
+        /// Returns json status of the current operations which has been executing asynchronously.
         /// </summary>
-        /// <param name="ar"></param>
-        /// <returns></returns>
-        /// <exception cref="FacebookApiException"></exception>
+        /// <param name="ar">The current operation async result.</param>
+        /// <returns>json status of the operation.</returns>
+        /// <exception cref="FacebookApiException">an exception occurred during the async call.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="ar"/> is null.</exception>
         public JsonObject EndPost(IAsyncResult ar)
         {
             return EndCall(ar);
         }
 
         /// <summary>
-        /// Makes a Facebook API DELETE request asynchronously.
+        /// Begins to make a Facebook API DELETE request asynchronously.
         /// </summary>
-        /// <param name="relativePath">The path for the call, e.g. /username</param>
-        /// <param name="cb"></param>
-        /// <param name="state"></param>
-        /// <exception cref="FacebookApiException"></exception>
-        public IAsyncResult BeginDelete(string relativePath, AsyncCallback cb, object state)
+        /// <param name="relativePath">The path for the call, e.g. /username.</param>
+        /// <param name="cb">A callback to call upon operation complete.</param>
+        /// <param name="state">user state to pass to the callback.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="relativePath"/> is null.</exception>
+        /// <exception cref="FacebookApiException">pre-request evaluation is failed.</exception>
+        public IAsyncResult BeginDelete([NotNull] string relativePath, [CanBeNull] AsyncCallback cb, [CanBeNull] object state)
         {
+            if (relativePath == null)
+                throw Nre("relativePath");
             return BeginCall(relativePath, HttpVerb.Delete, null, cb, state);
         }
 
         /// <summary>
-        /// 
+        /// Begins to make a Facebook API DELETE request asynchronously. If <paramref name="relativePath"/> is <c>null</c>, <paramref name="args"/> should contain <c>ids</c> or another facebook blessed approach to mean it is a batch call.
         /// </summary>
-        /// <param name="ar"></param>
-        /// <returns></returns>
-        /// <exception cref="FacebookApiException"></exception>
-        public JsonObject EndDelete(IAsyncResult ar)
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
+        /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments. These determine what will get set in the graph API.</param>
+        /// <param name="cb">A callback to call upon operation complete.</param>
+        /// <param name="state">user state to pass to the callback.</param>
+        /// <exception cref="FacebookApiException">pre-request evaluation is failed.</exception>
+        public IAsyncResult BeginDelete([CanBeNull] string relativePath,
+            [CanBeNull] Dictionary<string, string> args,
+            [CanBeNull] AsyncCallback cb,
+            [CanBeNull] object state)
+        {
+            return BeginCall(relativePath, HttpVerb.Delete, args, cb, state);
+        }
+
+        /// <summary>
+        /// Returns json status of the current operations which has been executing asynchronously.
+        /// </summary>
+        /// <param name="ar">The current operation async result.</param>
+        /// <returns>json status of the operation.</returns>
+        /// <exception cref="FacebookApiException">an exception occurred during the async call.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="ar"/> is null.</exception>
+        public JsonObject EndDelete([NotNull] IAsyncResult ar)
         {
             return EndCall(ar);
         }

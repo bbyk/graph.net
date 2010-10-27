@@ -18,17 +18,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Web;
-using System.Web.SessionState;
 using System.Collections.Specialized;
 using System.Security.Cryptography;
-using System.Globalization;
 
 namespace Facebook
 {
     /// <summary>
+    /// Exposes canvas based authentication model. Fits well for IFrame apps.
     /// </summary>
     public class CanvasAuthContext : AuthContextBase, IAuthContext
     {
@@ -54,9 +52,10 @@ namespace Facebook
         #region Contructors
 
         ///<summary>
+        /// Initializes a new <see cref="CanvasAuthContext"/> object with specified <paramref name="bindings"/>.
         ///</summary>
-        ///<param name="bindings"></param>
-        ///<exception cref="Exception"></exception>
+        ///<param name="bindings">Application facebook bindings: appid, secret, site url, canvas page.</param>
+        ///<exception cref="ArgumentNullException"><paramref name="bindings"/> is null.</exception>
         public CanvasAuthContext([NotNull] IApplicationBindings bindings)
         {
             if (bindings == null)
@@ -78,18 +77,22 @@ namespace Facebook
         #region Public methods and properties
 
         ///<summary>
+        /// See <see cref="IAuthContext.AppId"/>.
         ///</summary>
         public string AppId { get { return _bindings.AppId; } }
 
         /// <summary>
+        /// See <see cref="IAuthContext.AppSecret"/>.
         /// </summary>
         public override string AppSecret { get { return _bindings.AppSecret; } }
 
         /// <summary>
+        /// See <see cref="IAuthContext.Session"/>.
         /// </summary>
         public Session Session { get { return _fbSession; } }
 
         /// <summary>
+        /// See <see cref="IAuthContext.Session"/>.
         /// </summary>
         public string AccessToken
         {
@@ -106,6 +109,7 @@ namespace Facebook
         }
 
         /// <summary>
+        /// See <see cref="IAuthContext.Expires"/>.
         /// </summary>
         public DateTime Expires
         {
@@ -113,7 +117,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// 
+        /// See <see cref="IAuthContext.UserId"/>.
         /// </summary>
         public long UserId
         {
@@ -121,33 +125,57 @@ namespace Facebook
         }
 
         ///<summary>
+        /// See <see cref="IAuthContext.ApiClient"/>.
         ///</summary>
         public FacebookApi ApiClient
         {
-            get { return _api ?? (_api = new FacebookApi(AccessToken, Culture)); }
+            get
+            {
+                if (_api != null)
+                    return _api;
+
+                var api = CreateApiClient();
+                api.AccessToken = AccessToken;
+
+                return (_api = api);
+            }
         }
 
         ///<summary>
+        /// See <see cref="IAuthContext.AppApiClient"/>.
         ///</summary>
         public FacebookApi AppApiClient
         {
-            get { return _appWideApi ?? (_appWideApi = new FacebookApi(AppAccessToken, Culture)); }
+            get
+            {
+                if (_appWideApi != null)
+                    return _appWideApi;
+
+                var api = CreateApiClient();
+                api.AccessToken = AppAccessToken;
+
+                return (_appWideApi = api);
+            }
         }
 
         ///<summary>
+        /// See <see cref="IAuthContext.GetLoginUrl(Uri, Dictionary{String, String})"/>.
         ///</summary>
-        ///<param name="nextUrl"></param>
-        ///<returns></returns>
+        ///<param name="nextUrl" />
+        ///<returns />
+        ///<exception cref="ArgumentNullException"><paramref name="nextUrl"/> is null.</exception>
         public string GetLoginUrl(Uri nextUrl)
         {
             return GetLoginUrl(nextUrl, EmptyParams);
         }
 
         /// <summary>
+        /// See <see cref="IAuthContext.GetLoginUrl(Uri, LoginParams)"/>.
         /// </summary>
-        /// <param name="nextUrl"></param>
-        /// <param name="params"></param>
-        /// <returns></returns>
+        /// <param name="nextUrl" />
+        /// <param name="params" />
+        /// <returns />
+        ///<exception cref="ArgumentNullException"><paramref name="nextUrl"/> is null.</exception>
         public string GetLoginUrl(Uri nextUrl, LoginParams @params)
         {
             if (nextUrl == null)
@@ -165,11 +193,12 @@ namespace Facebook
         }
 
         ///<summary>
+        /// See <see cref="IAuthContext.GetLoginUrl(Uri, Dictionary{String, String})"/>.
         ///</summary>
-        ///<param name="nextUrl"></param>
-        ///<param name="params"></param>
-        ///<returns></returns>
-        ///<exception cref="Exception"></exception>
+        ///<param name="nextUrl" />
+        ///<param name="params" />
+        ///<returns />
+        ///<exception cref="ArgumentNullException"><paramref name="nextUrl"/> is null.</exception>
         public string GetLoginUrl(Uri nextUrl, Dictionary<string, string> @params)
         {
             if (nextUrl == null)
@@ -197,19 +226,23 @@ namespace Facebook
         }
 
         /// <summary>
+        /// See <see cref="IAuthContext.GetLogoutUrl"/>
         /// </summary>
-        /// <param name="nextUrl"></param>
-        /// <returns></returns>
+        /// <param name="nextUrl" />
+        /// <returns />
+        ///<exception cref="ArgumentNullException"><paramref name="nextUrl"/> is null.</exception>
         public string GetLogoutUrl(Uri nextUrl)
         {
             return GetLogoutUrl(nextUrl, EmptyParams);
         }
 
         /// <summary>
+        /// See <see cref="IAuthContext.GetLogoutUrl"/>
         /// </summary>
-        /// <param name="nextUrl"></param>
-        /// <param name="params"></param>
-        /// <returns></returns>
+        /// <param name="nextUrl" />
+        /// <param name="params" />
+        /// <returns />
+        ///<exception cref="ArgumentNullException"><paramref name="nextUrl"/> is null.</exception>
         public string GetLogoutUrl(Uri nextUrl, Dictionary<string, string> @params)
         {
             if (nextUrl == null)
@@ -228,10 +261,12 @@ namespace Facebook
         }
 
         /// <summary>
+        /// Generates absolute url for a relative url on the site (e.g. http://localhost/graph.net/default.aspx).
         /// </summary>
-        /// <param name="relativeUrl"></param>
-        /// <returns></returns>
-        public string ResolveSiteUrl(string relativeUrl)
+        /// <param name="relativeUrl">a relative url to convert to absolute (e.g. ~/default.aspx).</param>
+        /// <returns>An absolute url for the relative url on the site.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="relativeUrl"/> is null.</exception>
+        public string ResolveSiteUrl([NotNull] string relativeUrl)
         {
             if (relativeUrl == null)
                 throw FacebookApi.Nre("relativeUrl");
@@ -240,10 +275,12 @@ namespace Facebook
         }
 
         /// <summary>
+        /// Generates absolute url for a relative url on facebook application canvas (e.g. http://apps.facebook.com/graphdotnet/default.aspx).
         /// </summary>
-        /// <param name="relativeUrl"></param>
-        /// <returns></returns>
-        public string ResolveCanvasPageUrl(string relativeUrl)
+        /// <param name="relativeUrl">a relative url to convert to absolute (e.g. ~/default.aspx).</param>
+        /// <returns>An absolute url for the relative url on facebook application canvas.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="relativeUrl"/> is null.</exception>
+        public string ResolveCanvasPageUrl([NotNull] string relativeUrl)
         {
             if (relativeUrl == null)
                 throw FacebookApi.Nre("relativeUrl");
@@ -266,13 +303,16 @@ namespace Facebook
         }
 
         /// <summary>
+        /// See <see cref="IAuthContext.IsAuthenticated"/>.
         /// </summary>
         public bool IsAuthenticated { get { return _fbSession != null && !_fbSession.IsExpired; } }
 
         /// <summary>
+        /// Authenticates current request. Returns <c>true</c> if the request is authenticated and an instance of <see cref="Session"/> is set; otherwise <c>false</c>.
         /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
+        /// <param name="context">the current request context information.</param>
+        /// <returns><c>true</c> if the request is authenticated and an instance of <see cref="Session"/> is set; otherwise <c>false</c>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="context"/> is null.</exception>
         public bool Authenticate([NotNull] HttpContext context)
         {
             if (context == null)
@@ -396,7 +436,10 @@ namespace Facebook
             return session;
         }
 
-        string AppAccessToken
+        /// <summary>
+        /// See <see cref="IAuthContext.AppAccessToken"/>.
+        /// </summary>
+        public string AppAccessToken
         {
             get { return AppId + "|" + _bindings.AppSecret; }
         }
@@ -410,10 +453,12 @@ namespace Facebook
 
         #region Static methods
         /// <summary>
+        /// Generates and writes to response a javascript code to redirect to a url from iframe so that the url will be in browser's address bar. Calling the method completes current request.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="url"></param>
-        public static void RedirectFromIFrame(HttpContext context, string url)
+        /// <param name="context">Http context the <see cref="HttpResponse"/> of which is used to issue the js.</param>
+        /// <param name="url">an url to redirect to.</param>
+        /// <exception cref="ArgumentNullException">either <paramref name="context"/> or <paramref name="url"/> is null.</exception>
+        public static void RedirectFromIFrame([NotNull] HttpContext context, [NotNull] string url)
         {
             if (context == null)
                 throw FacebookApi.Nre("context");

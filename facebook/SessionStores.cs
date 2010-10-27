@@ -1,5 +1,22 @@
-﻿using System;
-using System.Collections.Specialized;
+﻿#region Boris Byk's boilerplate notice
+/*
+ * Copyright 2010 Boris Byk.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
+#endregion
+
+using System;
 using System.Web;
 using System.Web.SessionState;
 using System.Globalization;
@@ -7,60 +24,70 @@ using System.Globalization;
 namespace Facebook
 {
     ///<summary>
-    /// Stores facebook session information in cookie compatible with new Connect JS library.
+    /// Stores facebook <see cref="Facebook.Session"/> information in a cookie compatible with the new Connect JS library.
     ///</summary>
     public class CookieSessionStore : ISessionStorage
     {
-        static readonly DateTime s_unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        readonly HttpContext _httpContext;
+        readonly IAuthContext _authContext;
+
+        ///<summary>
+        /// Initializes a new instance of <see cref="CookieSessionStore"/> class with specified <see cref="HttpContext"/> and <see cref="IAuthContext"/> 
+        ///</summary>
+        ///<param name="httpContext">The http context the response of which is used to store the cookie with session data.</param>
+        ///<param name="authContext">The authentication context.</param>
+        ///<exception cref="ArgumentNullException">either <paramref name="httpContext"/> or <paramref name="authContext"/> is null.</exception>
+        public CookieSessionStore([NotNullAttribute] HttpContext httpContext, [NotNullAttribute] IAuthContext authContext)
+        {
+            if (httpContext == null)
+                throw FacebookApi.Nre("httpContext");
+            if (authContext == null)
+                throw FacebookApi.Nre("authContext");
+
+            _httpContext = httpContext;
+            _authContext = authContext;
+        }
 
         /// <summary>
+        /// A key which is used to fetch Session from the storage.
         /// </summary>
         protected string SessionStoreKey;
 
         ///<summary>
+        /// The HttpContext which response is used to store the cookie.
         ///</summary>
-        public HttpContext HttpContext { get; set; }
+        public HttpContext HttpContext { get { return _httpContext; } }
 
         ///<summary>
+        /// The authentication context.
         ///</summary>
-        public IAuthContext AuthContext { get; set; }
+        public IAuthContext AuthContext { get { return _authContext; } }
 
         ///<summary>
+        /// A domain to assosiate the cookie with.
         ///</summary>
         public string BaseDomain { get; set; }
 
         ///<summary>
+        /// The name of the cookie to store. Actually the produced name is 'fbs_' + applicationId. This form of cookie is required to be compatible to the connect js api.
         ///</summary>
         public string SessionCookieName
         {
-            get
-            {
-                EnsureInitialized();
-                return SessionStoreKey ?? (SessionStoreKey = "fbs_" + AuthContext.AppId);
-            }
-        }
-
-        /// <summary>
-        /// </summary>
-        protected void EnsureInitialized()
-        {
-            if (HttpContext == null)
-                throw FacebookApi.Nre("HttpContext");
-
-            if (AuthContext == null)
-                throw FacebookApi.Nre("AuthContext");
+            get { return SessionStoreKey ?? (SessionStoreKey = "fbs_" + AuthContext.AppId); }
         }
 
         #region ISessionStorage Members
 
         /// <summary>
+        /// Determines if the storage is secure and the library does not need to verify the Session given. Always <c>false</c> for the class.
         /// </summary>
+        /// <value>Always <c>false</c>.</value>
         public bool IsSecure { get { return false; } }
 
         /// <summary>
+        /// Fetches from or saves to an instance of facebook <see cref="Facebook.Session"/> using cookie as storage.
         /// </summary>
         /// <exception cref="HttpException">Headers are already written.</exception>
-        /// <exception cref="ArgumentNullException">The object was not properly initialized. HttpContext and AuthContext properties should be set.</exception>
         public Session Session
         {
             get
@@ -68,7 +95,7 @@ namespace Facebook
                 string cookieName = SessionCookieName;
                 HttpCookie cookie = HttpContext.Request.Cookies[cookieName];
                 Session session = null;
-                
+
                 if (cookie != null
                     && cookie.Value != null
                     && cookie.Value.Length > 2
@@ -128,15 +155,30 @@ namespace Facebook
     }
 
     ///<summary>
+    /// Stores facebook <see cref="Facebook.Session"/> information in ASP.NET <see cref="HttpSessionState"/>.
     ///</summary>
     public class AspNetSessionStore : CookieSessionStore, ISessionStorage
     {
+        ///<summary>
+        /// Initializes a new instance of <see cref="AspNetSessionStore"/> class with specified <see cref="HttpContext"/> and <see cref="IAuthContext"/> 
+        ///</summary>
+        ///<param name="httpContext">The http context the ASP.NET <see cref="HttpSessionState"/> of which is used to store the session.</param>
+        ///<param name="authContext">The authentication context.</param>
+        ///<exception cref="ArgumentNullException">either <paramref name="httpContext"/> or <paramref name="authContext"/> is null.</exception>
+        public AspNetSessionStore([NotNullAttribute] HttpContext httpContext, [NotNullAttribute] IAuthContext authContext)
+            : base(httpContext, authContext)
+        {
+        }
+
         /// <summary>
+        /// Determines if the storage is secure and the library does not need to verify the Session given. Always <c>true</c> for the class.
         /// </summary>
+        /// <value>Always <c>true</c>.</value>
         public new bool IsSecure { get { return true; } }
 
-        ///<summary>
-        ///</summary>
+        /// <summary>
+        /// A key which is used to fetch Session from the ASP.NET <see cref="HttpSessionState"/> object.
+        /// </summary>
         public new string SessionStoreKey
         {
             get { return SessionCookieName; }
@@ -145,19 +187,20 @@ namespace Facebook
 
         #region ISessionStorage Members
 
-        ///<summary>
-        ///</summary>
+
+        /// <summary>
+        /// Fetches from or saves to an instance of facebook <see cref="Facebook.Session"/> using the ASP.NET <see cref="HttpSessionState"/> object as storage.
+        /// </summary>
+        /// <exception cref="HttpException">Headers are already written.</exception>
         public new Session Session
         {
             get
             {
-                EnsureInitialized();
                 HttpSessionState httpSession = HttpContext.Session;
                 return httpSession == null ? null : httpSession[SessionStoreKey] as Session;
             }
             set
             {
-                EnsureInitialized();
                 HttpSessionState httpSession = HttpContext.Session;
                 if (httpSession != null)
                     httpSession[SessionStoreKey] = value;

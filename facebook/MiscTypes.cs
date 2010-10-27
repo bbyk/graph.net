@@ -17,10 +17,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Threading;
 using System.Web.Script.Serialization;
 using System.Globalization;
 
@@ -150,21 +148,25 @@ namespace Facebook
         /// <summary>
         /// Application ID
         /// </summary>
+        [NotNull]
         string AppId { get; }
 
         /// <summary>
         /// Application Secret
         /// </summary>
+        [NotNull]
         string AppSecret { get; }
 
         /// <summary>
         /// E.g. http://localhost:24526/
         /// </summary>
+        [NotNull]
         string SiteUrl { get; }
 
         /// <summary>
         /// E.g. http://apps.facebook.com/graphdotnet/
         /// </summary>
+        [NotNull]
         string CanvasPage { get; }
     }
 
@@ -173,11 +175,14 @@ namespace Facebook
     public interface ISessionStorage
     {
         ///<summary>
+        /// Determines if the storage is secure and the library does not need to verify the Session given.
         ///</summary>
         bool IsSecure { get; }
 
         ///<summary>
+        /// Fetches from or saves to an instance of facebook <see cref="Facebook.Session"/> using an underlying storage.
         ///</summary>
+        [CanBeNull]
         Session Session { get; set; }
     }
 
@@ -186,6 +191,14 @@ namespace Facebook
     /// </summary>
     [AttributeUsage(AttributeTargets.Delegate | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public sealed class NotNullAttribute : Attribute
+    {
+    }
+
+    /// <summary>
+    /// Indicates that the value of marked element can be null.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Delegate | AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public sealed class CanBeNull : Attribute
     {
     }
 

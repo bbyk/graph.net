@@ -22,41 +22,43 @@ using System.Security.Principal;
 namespace Facebook
 {
     /// <summary>
+    /// Authentication primitive encapsulating <see cref="IAuthContext"/>.
     /// </summary>
     public class Identity : IIdentity
     {
-        [NonSerialized]
         readonly IAuthContext _context;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of <see cref="Identity"/> class with specified authentication context.
         /// </summary>
-        /// <param name="context"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public Identity(IAuthContext context)
+        /// <param name="context">The context to initialize with.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="context"/> is null.</exception>
+        public Identity([NotNull] IAuthContext context)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw FacebookApi.Nre("context");
             _context = context;
         }
 
         /// <summary>
-        /// 
+        /// Returns the current authentication context.
         /// </summary>
+        [NotNull]
         public IAuthContext AuthContext { get { return _context; } }
 
         #region IIdentity Members
 
         /// <summary>
-        /// 
+        /// Gets the type of authentication used. The value is <c>Forms</c> in case of the class.
         /// </summary>
+        /// <value>Always <c>Forms</c></value>
         public string AuthenticationType
         {
             get { return "Forms"; }
         }
 
         /// <summary>
-        /// 
+        /// Indicates whether the user has been authenticated.
         /// </summary>
         public bool IsAuthenticated
         {
@@ -64,7 +66,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// 
+        /// The name of the current user.
         /// </summary>
         public string Name
         {

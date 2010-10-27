@@ -46,11 +46,7 @@ namespace FacebookAPI.WebUI
                     ExProcessor = ex => Debug.Write(ex),
                 };
 
-                util.SessionStorage = new AspNetSessionStore
-                {
-                    AuthContext = util,
-                    HttpContext = context,
-                };
+                util.SessionStorage = new AspNetSessionStore(context, util);
 
                 util.BeginAuthenticateRequest(context, tar.AsSafe(ar =>
                 {
@@ -105,11 +101,7 @@ namespace FacebookAPI.WebUI
                 ExProcessor = ex => Debug.Write(ex),
             };
 
-            util.SessionStorage = new CookieSessionStore
-            {
-                HttpContext = context,
-                AuthContext = util,
-            };
+            util.SessionStorage = new CookieSessionStore(context, util);
 
             if (util.Authenticate(context) && !forceLogin)
             {

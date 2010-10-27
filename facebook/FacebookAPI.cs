@@ -37,7 +37,6 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
@@ -48,7 +47,6 @@ using System.Security;
 
 namespace Facebook
 {
-
     enum HttpVerb
     {
         Get,
@@ -66,12 +64,14 @@ namespace Facebook
         static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(100);
 
         ///<summary>
+        /// Gets or sets the proxy information for api requests.
         ///</summary>
         public IWebProxy Proxy { get; set; }
 
         ///<summary>
+        /// Gets or sets timeout for api requests.
         ///</summary>
-        ///<exception cref="ArgumentException"></exception>
+        ///<exception cref="ArgumentException">cannot be less than zero.</exception>
         public TimeSpan Timeout
         {
             get { return _timeout.HasValue ? _timeout.Value : s_defaultTimeout; }
@@ -79,9 +79,11 @@ namespace Facebook
         }
 
         ///<summary>
+        /// Current locale for graph calls. Facebook graph is locale sensitive. If not provided, <see cref="CultureInfo.CurrentCulture"/> is used.
         ///</summary>
         public CultureInfo Culture
         {
+            [NotNull]
             get { return _ci ?? CultureInfo.CurrentCulture; }
             set { _ci = value; }
         }
@@ -99,21 +101,20 @@ namespace Facebook
         }
 
         ///<summary>
+        /// Create a new instance of the API, with specified access token.
         ///</summary>
-        ///<param name="token"></param>
-        public FacebookApi(string token)
+        ///<param name="token">An access token for api requests. If <c>null</c>, only public information is available (e.g. http://graph.facebook.com/710740487)</param>
+        public FacebookApi([CanBeNull] string token)
             : this(token, CultureInfo.CurrentCulture)
         {
         }
 
         /// <summary>
-        /// Create a new instance of the API, using the given token to
-        /// authenticate.
+        /// Create a new instance of the API, using the given token and culture (locale).
         /// </summary>
-        /// <param name="token">The access token used for
-        /// authentication</param>
-        /// <param name="culture"></param>
-        public FacebookApi(string token, CultureInfo culture)
+        /// <param name="token">An access token for api requests. If <c>null</c>, only public information is available (e.g. http://graph.facebook.com/710740487).</param>
+        /// <param name="culture"><see cref="Culture"/> for more information.</param>
+        public FacebookApi([CanBeNull] string token, [CanBeNull] CultureInfo culture)
         {
             AccessToken = token;
             Culture = culture ?? CultureInfo.CurrentCulture;
@@ -122,20 +123,23 @@ namespace Facebook
         /// <summary>
         /// Makes a Facebook API GET request.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
-        public JsonObject Get(string relativePath)
+        /// <param name="relativePath">The path for the call, e.g. /username</param>
+        /// <exception cref="FacebookApiException"></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="relativePath"/> is null.</exception>
+        public JsonObject Get([NotNull] string relativePath)
         {
+            if (relativePath == null)
+                throw Nre("relativePath");
             return Call(relativePath, HttpVerb.Get, null);
         }
 
         /// <summary>
-        /// Makes a Facebook API GET request.
+        /// Makes a Facebook API GET request. If <paramref name="relativePath"/> is <c>null</c>, <paramref name="args"/> should contain <c>ids</c> or another facebook blessed approach to mean it is a batch call.
         /// </summary>
         /// <param name="relativePath">The path for the call, e.g. /username</param>
         /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments.</param>
-        public JsonObject Get(string relativePath, 
-                              Dictionary<string, string> args)
+        /// <exception cref="FacebookApiException">an exception occurred during the call.</exception>
+        public JsonObject Get([CanBeNull] string relativePath, [CanBeNull] Dictionary<string, string> args)
         {
             return Call(relativePath, HttpVerb.Get, args);
         }
@@ -143,20 +147,34 @@ namespace Facebook
         /// <summary>
         /// Makes a Facebook API DELETE request.
         /// </summary>
-        /// <param name="relativePath">The path for the call,
-        /// e.g. /username</param>
-        public JsonObject Delete(string relativePath)
+        /// <param name="relativePath">The path for the call, e.g. /username.</param>
+        /// <exception cref="FacebookApiException">an exception occurred during the call.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="relativePath"/> is null.</exception>
+        public JsonObject Delete([CanBeNull] string relativePath)
         {
+            if (relativePath == null)
+                throw Nre("relativePath");
             return Call(relativePath, HttpVerb.Delete, null);
         }
 
         /// <summary>
-        /// Makes a Facebook API POST request.
+        /// Makes a Facebook API DELETE request. If <paramref name="relativePath"/> is <c>null</c>, <paramref name="args"/> should contain <c>ids</c> or another facebook blessed approach to mean it is a batch call.
+        /// </summary>
+        /// <param name="relativePath">The path for the call, e.g. /username.</param>
+        /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments. These determine what will get set in the graph API.</param>
+        /// <exception cref="FacebookApiException">an exception occurred during the call.</exception>
+        public JsonObject Delete([CanBeNull] string relativePath, [CanBeNull] Dictionary<string, string> args)
+        {
+            return Call(relativePath, HttpVerb.Delete, args);
+        }
+
+        /// <summary>
+        /// Makes a Facebook API POST request. If <paramref name="relativePath"/> is <c>null</c>, <paramref name="args"/> should contain <c>ids</c> or another facebook blessed approach to mean it is a batch call.
         /// </summary>
         /// <param name="relativePath">The path for the call, e.g. /username</param>
         /// <param name="args">A dictionary of key/value pairs that will get passed as query arguments. These determine what will get set in the graph API.</param>
-        public JsonObject Post(string relativePath,
-                               Dictionary<string, string> args)
+        /// <exception cref="FacebookApiException">an exception occurred during the call.</exception>
+        public JsonObject Post([CanBeNull] string relativePath, [CanBeNull] Dictionary<string, string> args)
         {
             return Call(relativePath, HttpVerb.Post, args);
         }

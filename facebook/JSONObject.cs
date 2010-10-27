@@ -69,6 +69,7 @@ namespace Facebook
         /// <returns>The deserialized <see cref="JsonObject"/>.</returns>
         /// <exception cref="ArgumentNullException">input is null.</exception>
         /// <exception cref="FacebookApiException">invalid json input.</exception>
+        [NotNull]
         public static JsonObject CreateFromString([NotNull] string input, CultureInfo culture)
         {
             if (input == null)
@@ -88,15 +89,17 @@ namespace Facebook
         }
 
         ///<summary>
+        /// Current locale. Facebook graph is locale sensitive. The data in json can be localized. If not provided, <see cref="CultureInfo.CurrentCulture"/> is used
         ///</summary>
         public CultureInfo Culture
         {
+            [NotNull]
             get { return _ci ?? CultureInfo.CurrentCulture; }
             set { _ci = value; }
         }
 
         /// <summary>
-        /// Returns true if this JSONObject represents a dictionary.
+        /// Returns true if this <see cref="JsonObject"/> represents a dictionary.
         /// </summary>
         public bool IsDictionary
         {
@@ -107,7 +110,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns true if this JSONObject represents an array.
+        /// Returns true if this <see cref="JsonObject"/> represents an array.
         /// </summary>
         public bool IsArray
         {
@@ -118,7 +121,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns true if this JSONObject represents a string value. 
+        /// Returns true if this <see cref="JsonObject"/> represents a string value. 
         /// </summary>
         public bool IsString
         {
@@ -129,7 +132,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns true if this JSONObject represents an integer value.
+        /// Returns true if this <see cref="JsonObject"/> represents an integer value.
         /// </summary>
         public bool IsInteger
         {
@@ -147,7 +150,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns true if this JSONOBject represents a boolean value.
+        /// Returns true if this <see cref="JsonObject"/> represents a boolean value.
         /// </summary>
         public bool IsBoolean
         {
@@ -165,6 +168,7 @@ namespace Facebook
         }
 
         ///<summary>
+        /// Returns true if this <see cref="JsonObject"/> represents a <see cref="DateTime"/> value.
         ///</summary>
         public bool IsDateTime
         {
@@ -182,7 +186,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns this JSONObject as a dictionary
+        /// Returns this <see cref="JsonObject"/> as a dictionary
         /// </summary>
         public Dictionary<string, JsonObject> Dictionary
         {
@@ -193,7 +197,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns this JSONObject as an array
+        /// Returns this <see cref="JsonObject"/> as an array
         /// </summary>
         public JsonObject[] Array
         {
@@ -204,7 +208,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns this JSONObject as a string
+        /// Returns this <see cref="JsonObject"/> as a string
         /// </summary>
         public string String
         {
@@ -215,7 +219,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns this JSONObject as an integer
+        /// Returns this <see cref="JsonObject"/> as an integer
         /// </summary>
         public Int64 Integer
         {
@@ -226,7 +230,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns this JSONObject as a boolean
+        /// Returns this <see cref="JsonObject"/> as a boolean
         /// </summary>
         public bool Boolean
         {
@@ -237,7 +241,7 @@ namespace Facebook
         }
 
         /// <summary>
-        /// Returns this JSONObject as a datetime.
+        /// Returns this <see cref="JsonObject"/> as a <see cref="DateTime" />.
         /// </summary>
         public DateTime DateTime
         {
@@ -337,6 +341,7 @@ namespace Facebook
                 sb.Append(obj.String);
             }
         }
+
         private static void RecursiveDictionaryToString(JsonObject obj,
             StringBuilder sb, int level)
         {

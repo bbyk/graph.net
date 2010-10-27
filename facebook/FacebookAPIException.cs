@@ -41,6 +41,7 @@ using System;
 namespace Facebook
 {
     ///<summary>
+    /// The library's main exception.
     ///</summary>
     public class FacebookApiException : Exception
     {
