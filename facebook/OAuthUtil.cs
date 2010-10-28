@@ -33,6 +33,7 @@ namespace Facebook
         /// <summary>
         /// </summary>
         public static readonly Dictionary<string, string> EmptyParams = new Dictionary<string, string>();
+        const string c_oauthTokenUrl = "https://graph.facebook.com/oauth/access_token";
         #endregion
 
         #region Members
@@ -100,7 +101,7 @@ namespace Facebook
                 if (_api != null)
                     return _api;
 
-                var api = CreateApiClient();
+                var api = ApiClientFactory.Create();
                 api.AccessToken = AccessToken;
 
                 return (_api = api);
@@ -118,7 +119,7 @@ namespace Facebook
                 if (_appWideApi != null)
                     return _appWideApi;
 
-                var api = CreateApiClient();
+                var api = ApiClientFactory.Create();
                 api.AccessToken = AppAccessToken;
 
                 return (_appWideApi = api);
@@ -317,8 +318,8 @@ namespace Facebook
                 throw FacebookApi.Nre("redirectUri");
 
             string contentType;
-            string json = CreateApiClient().Request(
-                "https://graph.facebook.com/oauth/access_token",
+            string json = ApiClientFactory.Create().Request(
+                c_oauthTokenUrl,
                 HttpVerb.Post,
                 new Dictionary<string, string>
                 {
@@ -396,8 +397,8 @@ namespace Facebook
             if (String.IsNullOrEmpty(code))
                 throw FacebookApi.Nre("code");
 
-            return CreateApiClient().BeginRequest(
-                "https://graph.facebook.com/oauth/access_token",
+            return ApiClientFactory.Create().BeginRequest(
+                c_oauthTokenUrl,
                 HttpVerb.Post,
                 new Dictionary<string, string>
                 {

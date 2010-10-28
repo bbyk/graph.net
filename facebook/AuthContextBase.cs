@@ -113,13 +113,6 @@ namespace Facebook
         ///<returns></returns>
         FacebookApi IFacebookApiFactory.Create()
         {
-            return CreateApiClient();
-        }
-
-        /// <summary>
-        /// </summary>
-        protected FacebookApi CreateApiClient()
-        {
             return new FacebookApi { Proxy = Proxy, Timeout = Timeout, Culture = Culture, };
         }
 
