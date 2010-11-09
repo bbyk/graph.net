@@ -101,7 +101,7 @@ namespace Facebook
                 if (_api != null)
                     return _api;
 
-                var api = ApiClientFactory.Create();
+                var api = NewApiClient();
                 api.AccessToken = AccessToken;
 
                 return (_api = api);
@@ -119,7 +119,7 @@ namespace Facebook
                 if (_appWideApi != null)
                     return _appWideApi;
 
-                var api = ApiClientFactory.Create();
+                var api = NewApiClient();
                 api.AccessToken = AppAccessToken;
 
                 return (_appWideApi = api);
@@ -267,7 +267,7 @@ namespace Facebook
         ///<returns></returns>
         ///<exception cref="ArgumentNullException"><paramref name="context"/> is null.</exception>
         ///<exception cref="FacebookApiException"></exception>
-        ///<exception cref="TimeoutException">The operation took longer then <see cref="IFacebookApiFactory.Timeout"/>.</exception>
+        ///<exception cref="TimeoutException">The operation took longer then <see cref="AuthContextBase.Timeout"/>.</exception>
         public bool AuthenticateRequest([NotNull] HttpContext context)
         {
             if (context == null)
@@ -308,7 +308,7 @@ namespace Facebook
         ///<param name="redirectUri">a url which was passed to <see cref="GetLoginUrl(System.Uri)" /> as next url argument. It should not contain query part.</param>
         ///<param name="code">a verification string passed in the query string argument <c>code</c> when redirecting to <paramref name="redirectUri"/></param>
         ///<exception cref="FacebookApiException"></exception>
-        ///<exception cref="TimeoutException">The operation took longer then <see cref="IFacebookApiFactory.Timeout"/>.</exception>
+        ///<exception cref="TimeoutException">The operation took longer then <see cref="AuthContextBase.Timeout"/>.</exception>
         ///<exception cref="ArgumentNullException">either <paramref name="code"/> or <paramref name="redirectUri"/> is null.</exception>
         public void Authenticate([NotNull] string code, [NotNull] string redirectUri)
         {
@@ -318,7 +318,7 @@ namespace Facebook
                 throw FacebookApi.Nre("redirectUri");
 
             string contentType;
-            string json = ApiClientFactory.Create().Request(
+            string json = NewApiClient().Request(
                 c_oauthTokenUrl,
                 HttpVerb.Post,
                 new Dictionary<string, string>
@@ -397,7 +397,7 @@ namespace Facebook
             if (String.IsNullOrEmpty(code))
                 throw FacebookApi.Nre("code");
 
-            return ApiClientFactory.Create().BeginRequest(
+            return NewApiClient().BeginRequest(
                 c_oauthTokenUrl,
                 HttpVerb.Post,
                 new Dictionary<string, string>

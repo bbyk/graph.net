@@ -134,7 +134,7 @@ namespace Facebook
                 if (_api != null)
                     return _api;
 
-                var api = ApiClientFactory.Create();
+                var api = NewApiClient();
                 api.AccessToken = AccessToken;
 
                 return (_api = api);
@@ -151,7 +151,7 @@ namespace Facebook
                 if (_appWideApi != null)
                     return _appWideApi;
 
-                var api = ApiClientFactory.Create();
+                var api = NewApiClient();
                 api.AccessToken = AppAccessToken;
 
                 return (_appWideApi = api);

@@ -11,11 +11,11 @@ namespace Facebook
     ///<summary>
     /// Represents generic properties and methods of the authentication contexts used by Facebook: <see cref="CanvasAuthContext"/> and <see cref="OAuthContext"/>.
     ///</summary>
-    public abstract class AuthContextBase : IFacebookApiFactory
+    public abstract class AuthContextBase
     {
         CultureInfo _ci;
         TimeSpan? _timeout;
-        IFacebookApiFactory _factory;
+        Func<FacebookApi> _factory;
         static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(100);
 
         ///<summary>
@@ -95,26 +95,17 @@ namespace Facebook
         }
 
         ///<summary>
-        /// See <see cref="IAuthContext.ApiClientFactory"/>.
+        /// See <see cref="IAuthContext.NewApiClient"/>.
         ///</summary>
-        public IFacebookApiFactory ApiClientFactory
+        public Func<FacebookApi> NewApiClient
         {
             [NotNull]
-            get { return _factory ?? this; }
+            get { return _factory ?? (_factory = () => new FacebookApi { Proxy = Proxy, Timeout = Timeout, Culture = Culture, }); }
             [CanBeNull]
             set { _factory = value; }
         }
 
         #region IFacebookApiFactory Members
-
-        ///<summary>
-        /// See <see cref="IFacebookApiFactory.Create"/>
-        ///</summary>
-        ///<returns></returns>
-        FacebookApi IFacebookApiFactory.Create()
-        {
-            return new FacebookApi { Proxy = Proxy, Timeout = Timeout, Culture = Culture, };
-        }
 
         ///<summary>
         /// Gets or sets the proxy information for api requests.

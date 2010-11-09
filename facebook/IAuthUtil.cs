@@ -91,7 +91,7 @@ namespace Facebook
         ///<summary>
         /// Gets or sets an api client factory. The property always returns a not-null value. If it is set to null via its <c>set</c> accessor, its <c>get</c> accessor will return a default factory.
         ///</summary>
-        IFacebookApiFactory ApiClientFactory { [NotNull] get; [CanBeNull] set; }
+        Func<FacebookApi> NewApiClient { [NotNull] get; [CanBeNull] set; }
 
         ///<summary>
         /// A callback to process unexpected exceptions when authenticating on behalf of the client code (e.g. logging).
@@ -123,35 +123,5 @@ namespace Facebook
         /// <returns>A url on Facebook to redirect to.</returns>
         ///<exception cref="ArgumentNullException"><paramref name="nextUrl"/> is null.</exception>
         string GetLogoutUrl([NotNull] Uri nextUrl, [CanBeNull] Dictionary<string, string> @params);
-    }
-
-    ///<summary>
-    /// Creates and pre-initializes instances of <see cref="FacebookApi"/> class.
-    ///</summary>
-    public interface IFacebookApiFactory
-    {
-        ///<summary>
-        /// Creates a new pre-initialized instance of <see cref="FacebookApi"/> class.
-        ///</summary>
-        ///<returns></returns>
-        [NotNull]
-        FacebookApi Create();
-
-        ///<summary>
-        /// Gets or sets the proxy information for api requests.
-        ///</summary>
-        [CanBeNull]
-        IWebProxy Proxy { get; set; }
-
-        ///<summary>
-        /// Gets or sets timeout for api requests. Default timeout is 100 sec.
-        ///</summary>
-        ///<exception cref="ArgumentException">cannot be less than zero.</exception>
-        TimeSpan Timeout { get; set; }
-
-        ///<summary>
-        /// Current locale for graph calls. Facebook graph is locale sensitive. If not provided or set to null, <see cref="CultureInfo.CurrentCulture"/> is used.
-        ///</summary>
-        CultureInfo Culture { [NotNull] get; [CanBeNull] set; }
     }
 }
